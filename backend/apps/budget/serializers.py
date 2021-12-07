@@ -1,7 +1,8 @@
-from apps.users.models import User
 from rest_framework import serializers
+from . models import Budget
+from django.contrib.auth import get_user_model
 
-from .models import Budget
+User = get_user_model()
 
 
 class BudgetCreateSerializer(serializers.ModelSerializer):
@@ -9,4 +10,25 @@ class BudgetCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Budget
-        fields = ["name", "content", "creator"]
+        fields = ['name', 'content', 'creator']
+
+
+class UserListingField(serializers.RelatedField):
+    def to_representation(self, user):
+        return user.username
+
+
+class BudgetListSerializer(serializers.ModelSerializer):
+    creator = UserListingField(queryset=User.objects.all())
+
+    class Meta:
+        model = Budget
+        fields = ['name', 'creator', 'creator']
+
+
+class BudgetSerializer(serializers.ModelSerializer):
+    """Book serializer for all fields."""
+
+    class Meta:
+        model = Budget
+        fields = '__all__'

@@ -4,4 +4,3 @@ from faker import Factory
 fake = Factory.create()
 
 request_factory = RequestFactory()
-
