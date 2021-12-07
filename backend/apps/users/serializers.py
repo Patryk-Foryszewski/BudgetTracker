@@ -4,6 +4,7 @@ from django.conf import settings
 
 from apps.users.models import User
 from dj_rest_auth.registration.serializers import RegisterSerializer as DJ_Rest_Register_Serializer
+from dj_rest_auth.serializers import LoginSerializer as DJ_Login_Serializer
 from allauth.account import app_settings as allauth_settings
 
 
@@ -53,3 +54,9 @@ class RegisterSerializer(DJ_Rest_Register_Serializer):
     @transaction.atomic
     def save(self, request):
         return super().save(request)
+
+
+class LoginSerializer(DJ_Login_Serializer):
+    # overwrite username field to None so it is not required to "Login"
+    username = None
+    email = serializers.EmailField(required=True, allow_blank=True)
