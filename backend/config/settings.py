@@ -33,10 +33,12 @@ if not DEBUG:
         dsn=env.str("SENTRY_DSN"),
         integrations=[DjangoIntegration()],
         traces_sample_rate=1.0,
-        send_default_pii=True,
+        send_default_pii=True
     )
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
 
 
 # APP CONFIGURATION
@@ -64,7 +66,10 @@ THIRD_PARTY_APPS = [
     "dj_rest_auth.registration",
 ]
 
-LOCAL_APPS = ["apps.users", "apps.budget"]
+LOCAL_APPS = [
+    "apps.users",
+    "apps.budget"
+              ]
 
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -87,6 +92,8 @@ MIDDLEWARE = [
 # DOMAINS
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 # DOMAIN = env.str('DOMAIN')
+
+
 
 
 # MANAGER CONFIGURATION
@@ -241,7 +248,7 @@ SITE_ID = 1
 
 
 # EMAIL CONFIGURATION
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = env.str("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD")
@@ -252,7 +259,7 @@ EMAIL_PORT = 587
 # Select the correct user model
 AUTH_USER_MODEL = "users.User"
 
-ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = "email"
@@ -262,15 +269,15 @@ ACCOUNT_AUTHENTICATION_METHOD = "email"
 
 # AUTHENTICATION CONFIGURATION
 AUTHENTICATION_BACKENDS = [
-    "allauth.account.auth_backends.AuthenticationBackend",
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 REST_AUTH_REGISTER_SERIALIZERS = {
-    "REGISTER_SERIALIZER": "users.serializers.RegisterSerializer"
+    "REGISTER_SERIALIZER": 'users.serializers.RegisterSerializer'
 }
 
 REST_AUTH_SERIALIZERS = {
-    "LOGIN_SERIALIZER": "users.serializers.LoginSerializer",
+    'LOGIN_SERIALIZER': 'users.serializers.LoginSerializer',
 }
 
 REST_USE_JWT = True
