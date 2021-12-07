@@ -55,7 +55,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-
+    "drf_yasg",
     'rest_framework',
 
     'django_extensions',
