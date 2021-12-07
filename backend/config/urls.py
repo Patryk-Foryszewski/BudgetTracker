@@ -1,18 +1,27 @@
+from django.views.generic import RedirectView
+from django.conf.urls import include
 from django.urls import path
 from django.contrib import admin
-from django.contrib.auth import logout
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
 
-from django.conf.urls import include
-
-from config.api import api
-
-
+schema_view = get_schema_view(
+    openapi.Info(
+        title="FamilyBudget API",
+        default_version="v1",
+        description="API playground",
+        terms_of_service="not_yet",
+        contact=openapi.Contact(email="patryk.foryszewski@gmail.com"),
+        license=openapi.License(name="MIT License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
 
 urlpatterns = [
-    path('admin/', admin.site.urls, name='admin'),
-    path('logout/', logout, {'next_page': '/'}, name='logout'),
-    
-    path('api/', include(api.urls)),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    
+    path("", RedirectView.as_view(url="docs")),
+    path("docs", schema_view.with_ui(cache_timeout=0), name="docs"),
+    path("admin/", admin.site.urls, name="admin"),
+    path("api/v1/", include("apps.urls_v1")),
 ]
