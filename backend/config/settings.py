@@ -55,9 +55,9 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    
+
     'rest_framework',
-    
+
     'django_extensions',
 ]
 
@@ -225,7 +225,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # AUTHENTICATION CONFIGURATION
 # ------------------------------------------------------------------------------
 AUTHENTICATION_BACKENDS = [
-    
+
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -252,3 +252,7 @@ REST_FRAMEWORK = {
     ]
 }
 
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = "email"
