@@ -12,7 +12,7 @@ class TimeStamps(models.Model):
         abstract = True
 
 
-class BaseMixin(models.Model):
+class BaseMixin(TimeStamps):
     deleted = models.BooleanField(default=False)
 
     class Meta:
@@ -20,8 +20,8 @@ class BaseMixin(models.Model):
 
 
 class Budget(BaseMixin):
-    creator = models.ForeignKey(User, related_name="creator", on_delete=models.PROTECT)
-    participants = models.ManyToManyField(User, related_name="participants")
+    creator = models.ForeignKey(User, related_name='creator', on_delete=models.PROTECT)
+    participants = models.ManyToManyField(User, related_name='participants')
     name = models.CharField(max_length=30)
     content = models.TextField(blank=True, default="")
 
