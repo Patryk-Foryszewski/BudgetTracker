@@ -4,7 +4,9 @@ from factory import Faker, Sequence
 from factory.django import DjangoModelFactory
 
 from ..models import Budget
-from apps.users.models import User
+from django.conf import settings
+
+User = settings.AUTH_USER_MODEL
 
 
 class UserFactory(DjangoModelFactory):
