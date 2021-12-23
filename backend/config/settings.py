@@ -243,10 +243,10 @@ SITE_ID = 1
 # EMAIL CONFIGURATION
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = env.str("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD")
-EMAIL_HOST = env.bool("EMAIL_HOST")
-EMAIL_PORT = 587
+# EMAIL_HOST_USER = env.str("EMAIL_HOST_USER")
+# EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD")
+# EMAIL_HOST = env.bool("EMAIL_HOST")
+# EMAIL_PORT = 587
 
 # Custom user app defaults
 # Select the correct user model

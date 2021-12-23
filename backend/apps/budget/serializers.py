@@ -1,7 +1,9 @@
-from apps.users.models import User
 from rest_framework import serializers
+from django.conf import settings
 
 from .models import Budget
+
+User = settings.AUTH_USER_MODEL
 
 
 class BudgetCreateSerializer(serializers.ModelSerializer):
