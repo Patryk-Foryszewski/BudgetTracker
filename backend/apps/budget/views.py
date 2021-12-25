@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Budget
 from .serializers import (
     BudgetCreateSerializer,
+    BudgetDetailSerializer,
     BudgetListSerializer,
     BudgetUpdateSerializer,
 )
@@ -49,3 +50,6 @@ class BudgetUpdate(UpdateAPIView):
 
 class BudgetDetail(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = BudgetDetailSerializer
+    queryset = Budget.objects.all()
+    model = Budget

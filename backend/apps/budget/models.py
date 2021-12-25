@@ -39,7 +39,7 @@ class Income(BaseMixin):
     name = models.CharField(max_length=30)
     content = models.TextField(blank=True, default="")
     value = models.DecimalField(default=0, max_digits=8, decimal_places=2)
-    budget = models.ForeignKey(Budget, on_delete=models.PROTECT)
+    budget = models.ForeignKey(Budget, related_name="income", on_delete=models.PROTECT)
 
     def __str__(self):
         return f"{self.value}, {self.modified_date}, {self.creator}"
@@ -54,7 +54,9 @@ class Expense(BaseMixin):
     name = models.CharField(max_length=30)
     content = models.TextField(blank=True, default="")
     value = models.DecimalField(default=0, max_digits=8, decimal_places=2)
-    budget = models.ForeignKey(Budget, on_delete=models.PROTECT)
+    budget = models.ForeignKey(
+        Budget, related_name="expenses", on_delete=models.PROTECT
+    )
 
     def save(self, *args, **kwargs):
         self.full_clean()
