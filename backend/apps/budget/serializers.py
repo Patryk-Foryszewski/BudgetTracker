@@ -1,10 +1,9 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from . models import Budget
 
+from .models import Budget
 
-from django.conf import settings
-
-User = settings.AUTH_USER_MODEL
+User = get_user_model()
 
 
 class BudgetCreateSerializer(serializers.ModelSerializer):
@@ -12,7 +11,7 @@ class BudgetCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Budget
-        fields = ['name', 'content', 'creator']
+        fields = ["name", "content", "creator"]
 
 
 class UserListingField(serializers.RelatedField):
@@ -25,7 +24,7 @@ class BudgetListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Budget
-        fields = ['name', 'creator', 'creator']
+        fields = ["name", "creator"]
 
 
 class BudgetSerializer(serializers.ModelSerializer):
@@ -33,4 +32,16 @@ class BudgetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Budget
-        fields = '__all__'
+        fields = "__all__"
+
+
+class BudgetUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Budget
+        fields = ["name", "value"]
+
+
+class BudgetDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Budget
+        fields = ["created_date", "modified_date", "creator", "participants"]
