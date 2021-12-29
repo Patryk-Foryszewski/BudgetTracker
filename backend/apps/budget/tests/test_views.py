@@ -5,7 +5,7 @@ from faker import Faker
 from rest_framework import status
 from rest_framework.test import force_authenticate
 
-from ..views import BudgetCreate, BudgetDetail, BudgetList, BudgetUpdate
+from ..views import BudgetCreate, BudgetDetail, BudgetList, BudgetUpdate, ExpenseCreate
 from .factories import BudgetFactory, UserFactory
 from .utils import request_factory
 
@@ -51,6 +51,27 @@ class CreateBudgetView(TestCase):
         response = BudgetCreate.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_add_participants_to_budget(self):
+        fake = Faker(["pl_PL", "la"])
+        participant1 = UserFactory()
+        participant2 = UserFactory()
+        participant3 = UserFactory()
+        data = {
+            "name": fake.sentence(nb_words=1),
+            "content": fake.sentence(nb_words=30, variable_nb_words=False),
+            "participants": [
+                str(participant1.id),
+                str(participant2.id),
+                str(participant3.id),
+            ],
+        }
+        request = request_factory.post(
+            "/", data=json.dumps(data), content_type="application/json"
+        )
+        force_authenticate(request, user=self.user)
+        response = BudgetCreate.as_view()(request)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
 
 class BudgetListView(TestCase):
     @classmethod
@@ -85,25 +106,6 @@ class UpdateBudget(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.budget.name, data["name"])
 
-    def test_update_budget_value(self):
-        data = {"value": 10.56}
-        request = request_factory.patch("/", data=data, content_type="application/json")
-        force_authenticate(request, user=self.user)
-        response = BudgetUpdate.as_view()(request, pk=self.budget.pk)
-        self.budget.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(float(self.budget.value), data["value"])
-
-    def test_update_budget_value_too_many_decimal_places(self):
-        data = {"value": 10.123}
-        request = request_factory.patch("/", data=data, content_type="application/json")
-        force_authenticate(request, user=self.user)
-        response = BudgetUpdate.as_view()(request, pk=self.budget.pk)
-        self.budget.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(self.budget.value, 0)
-        self.assertEqual(response.data["value"][0].code, "max_decimal_places")
-
 
 class DetailBudget(TestCase):
     @classmethod
@@ -116,6 +118,7 @@ class DetailBudget(TestCase):
         force_authenticate(request, user=self.user)
         response = BudgetDetail.as_view()(request, pk=self.budget.pk)
         keys = [
+            "pk",
             "name",
             "created_date",
             "modified_date",
@@ -123,8 +126,58 @@ class DetailBudget(TestCase):
             "participants",
             "income",
             "expenses",
+            "expenses_sum",
+            "budget_left",
         ]
         self.assertEqual(len(keys), len(response.data.keys()))
-        print("BUDGET DETAILS", response.data)
-        for key in keys:
-            self.assertIn(key, response.data.keys())
+
+        # for key in keys:
+        #     self.assertIn(key, response.data.keys())
+
+
+class CreateExpense(TestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        cls.user_1 = UserFactory()
+        cls.user_2 = UserFactory()
+        cls.budget = BudgetFactory(creator=cls.user_1)
+        # cls.expense = ExpenseFactory(creator=cls.user, budget=cls.budget)
+
+    def test_create_expense_without_required_keys(self):
+        fake = Faker(["pl_PL", "la"])
+
+        data = {"name": fake.sentence(nb_words=1), "value": 10}
+        request = request_factory.post("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.user_1)
+
+        response = ExpenseCreate.as_view()(request, pk=self.budget.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_expense_by_user_that_is_not_creator_or_participant(self):
+        fake = Faker(["pl_PL", "la"])
+
+        data = {
+            "name": fake.sentence(nb_words=1),
+            "budget": self.budget.pk,
+            "value": 10,
+        }
+        request = request_factory.post("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.user_2)
+
+        response = ExpenseCreate.as_view()(request, pk=self.budget.pk)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_expense(self):
+        fake = Faker(["pl_PL", "la"])
+
+        data = {
+            "name": fake.sentence(nb_words=1),
+            "budget": self.budget.pk,
+            "value": 10,
+        }
+        request = request_factory.post("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.user_1)
+
+        response = ExpenseCreate.as_view()(request, pk=self.budget.pk)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

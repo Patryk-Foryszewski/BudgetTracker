@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Sum
 from rest_framework import serializers
 
+from .mixins import HasAccessMixin
 from .models import Budget, Expense, Income
 
 User = get_user_model()
@@ -38,58 +40,78 @@ class BudgetSerializer(serializers.ModelSerializer):
 class BudgetUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Budget
-        fields = ["name", "value"]
-
-
-# class Album(models.Model):
-#     album_name = models.CharField(max_length=100)
-#     artist = models.CharField(max_length=100)
-#
-# class Track(models.Model):
-#     album = models.ForeignKey(Album, related_name='tracks')
-#     order = models.IntegerField()
-#     title = models.CharField(max_length=100)
-#     duration = models.IntegerField()
-#
-#     class Meta:
-#         unique_together = ('album', 'order')
-#         order_by = 'order'
-#
-#     def __unicode__(self):
-#         return '%d: %s' % (self.order, self.title)
-#
-# class TrackSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Track
-#         fields = ('order', 'title')
-#
-# class AlbumSerializer(serializers.ModelSerializer):
-#     tracks = TrackSerializer(many=True)
-#
-#     class Meta:
-#         model = Album
-#         fields = ('album_name', 'artist', 'tracks')
-
-
-class IncomeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Income
-        fields = ("pk", "name", "value", "created_date", "modified_date", "creator")
+        fields = ["name"]
 
 
 class ExpenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expense
-        fields = ("pk", "name", "value", "created_date", "modified_date", "creator")
+        fields = (
+            "pk",
+            "name",
+            "budget",
+            "value",
+            "created_date",
+            "modified_date",
+            "creator",
+        )
+
+
+class ExpenseCreateSerializer(HasAccessMixin, serializers.ModelSerializer):
+    class Meta:
+        model = Expense
+        fields = ("name", "budget", "value", "creator")
+
+
+class ExpenseUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Expense
+        fields = ("name", "value")
+
+
+class IncomeUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Income
+        fields = ("name", "value")
+
+
+class IncomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Income
+        fields = (
+            "pk",
+            "name",
+            "budget",
+            "value",
+            "created_date",
+            "modified_date",
+            "creator",
+        )
 
 
 class BudgetDetailSerializer(serializers.ModelSerializer):
     income = IncomeSerializer(many=True)
     expenses = ExpenseSerializer(many=True)
+    expenses_sum = serializers.SerializerMethodField()
+    budget_left = serializers.SerializerMethodField()
+
+    def sum_up_expenses(self, budget):
+        value = budget.expenses.aggregate(Sum("value"))["value__sum"]
+        return value or 0
+
+    def get_expenses_sum(self, budget):
+        return self.sum_up_expenses(budget)
+
+    def get_budget_left(self, budget):
+        # income = budget.income.aggregate(Sum('value'))["value__sum"]
+        income = Income.objects.filter(budget=budget).first()
+        income = income.value if income else 0
+        return income - self.sum_up_expenses(budget)
 
     class Meta:
         model = Budget
         fields = (
+            "pk",
             "name",
             "created_date",
             "modified_date",
@@ -97,4 +119,6 @@ class BudgetDetailSerializer(serializers.ModelSerializer):
             "participants",
             "income",
             "expenses",
+            "expenses_sum",
+            "budget_left",
         )
