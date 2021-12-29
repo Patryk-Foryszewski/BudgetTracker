@@ -181,3 +181,32 @@ class CreateExpense(TestCase):
 
         response = ExpenseCreate.as_view()(request, pk=self.budget.pk)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+class UpdateExpense(TestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        cls.user_1 = UserFactory()
+        cls.user_2 = UserFactory()
+        cls.budget = BudgetFactory(creator=cls.user_1)
+
+    def test_add_participants_to_budget(self):
+        fake = Faker(["pl_PL", "la"])
+        participant1 = UserFactory()
+        participant2 = UserFactory()
+        participant3 = UserFactory()
+        data = {
+            "name": fake.sentence(nb_words=1),
+            "content": fake.sentence(nb_words=30, variable_nb_words=False),
+            "participants": [
+                str(participant1.id),
+                str(participant2.id),
+                str(participant3.id),
+            ],
+        }
+        request = request_factory.post(
+            "/", data=json.dumps(data), content_type="application/json"
+        )
+        force_authenticate(request, user=self.user)
+        response = BudgetCreate.as_view()(request)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

@@ -18,3 +18,9 @@ class HasAccessMixin:
                 "User not allowed to create expenses for this budget"
             )
         return validated_data
+
+
+class AddCreatorMixin:
+    def create(self, request, *args, **kwargs):
+        request.data["creator"] = request.user.id
+        return super().create(request, *args, **kwargs)

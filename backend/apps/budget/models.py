@@ -1,5 +1,7 @@
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.db import models
+from django.db.models import Q
 
 User = settings.AUTH_USER_MODEL
 
@@ -24,7 +26,6 @@ class Budget(BaseMixin):
     participants = models.ManyToManyField(User, related_name="participants")
     name = models.CharField(max_length=30)
     content = models.TextField(blank=True, default="")
-    # value = models.DecimalField(default=0, max_digits=8, decimal_places=2)
 
     def __str__(self):
         return f"Name: {self.name}, Creator {self.creator}"
@@ -61,5 +62,33 @@ class Expense(BaseMixin):
     )
 
     def save(self, *args, **kwargs):
+        print("SAVE", args, kwargs)
+        self.has_access()
         self.full_clean()
         return super().save(*args, **kwargs)
+
+    def has_access(self):
+        creator_or_participant = Budget.objects.filter(
+            Q(pk=self.budget_id)
+            & (Q(creator=self.creator_id) | Q(participants=self.creator_id))
+        ).first()
+
+        if not creator_or_participant:
+            raise PermissionDenied(
+                "User not allowed to create expenses for this budget"
+            )
+
+        if self.creator and (
+            self.creator.id != self.creator_id
+            or creator_or_participant.creator.id != self.creator_id
+        ):
+            raise PermissionDenied(
+                "Only Budget Creator or Expense Creator can edit Expense"
+            )
+
+        # if creator_or_participant.creator.id != self.creator_id and \
+        #     self.creator.id != self.creator_id:
+        #
+        #     raise PermissionDenied(
+        #         "User not allowed to create expenses for this budget"
+        #     )

@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from rest_framework import serializers
 
-from .mixins import HasAccessMixin
 from .models import Budget, Expense, Income
 
 User = get_user_model()
@@ -57,7 +56,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
         )
 
 
-class ExpenseCreateSerializer(HasAccessMixin, serializers.ModelSerializer):
+class ExpenseCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expense
         fields = ("name", "budget", "value", "creator")
