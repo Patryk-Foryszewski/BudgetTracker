@@ -8,7 +8,6 @@ from rest_framework.generics import (
 )
 from rest_framework.permissions import IsAuthenticated
 
-from .mixins import AddCreatorMixin
 from .models import Budget, Expense
 from .serializers import (
     BudgetCreateSerializer,
@@ -22,7 +21,7 @@ from .serializers import (
 PAGINATE_BY = settings.PAGINATE_BY
 
 
-class BudgetCreate(AddCreatorMixin, CreateAPIView):
+class BudgetCreate(CreateAPIView):
     model = Budget
     permission_classes = [IsAuthenticated]
     serializer_class = BudgetCreateSerializer
@@ -57,13 +56,13 @@ class BudgetDetail(RetrieveAPIView):
     model = Budget
 
 
-class ExpenseCreate(AddCreatorMixin, CreateAPIView):
+class ExpenseCreate(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ExpenseCreateSerializer
     model = Expense
 
 
-class ExpenseUpdate(AddCreatorMixin, UpdateAPIView):
+class ExpenseUpdate(UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ExpenseUpdateSerializer
     queryset = Expense.objects.all()

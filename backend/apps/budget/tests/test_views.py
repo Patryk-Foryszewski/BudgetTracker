@@ -223,5 +223,4 @@ class UpdateExpense(TestCase):
         force_authenticate(request, user=self.user_2)
 
         response = ExpenseUpdate.as_view()(request, pk=self.expense.pk)
-        print("RESPONSE", response.__dict__)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

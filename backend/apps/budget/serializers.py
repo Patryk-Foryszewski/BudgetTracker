@@ -3,17 +3,18 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Q, Sum
 from rest_framework import serializers
 
+from .mixins import AddCreatorMixin
 from .models import Budget, Expense, Income
 
 User = get_user_model()
 
 
-class BudgetCreateSerializer(serializers.ModelSerializer):
-    creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+class BudgetCreateSerializer(AddCreatorMixin, serializers.ModelSerializer):
+    # creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
     class Meta:
         model = Budget
-        fields = ["name", "content", "creator"]
+        fields = ["name", "content"]
 
 
 class UserListingField(serializers.RelatedField):
@@ -49,10 +50,10 @@ class ExpenseSerializer(serializers.ModelSerializer):
         )
 
 
-class ExpenseCreateSerializer(serializers.ModelSerializer):
+class ExpenseCreateSerializer(AddCreatorMixin, serializers.ModelSerializer):
     class Meta:
         model = Expense
-        fields = ("name", "budget", "value", "creator")
+        fields = ("name", "budget", "value")
 
     def has_access(self, validated_data):
         creator_or_participant = Budget.objects.filter(
@@ -79,6 +80,8 @@ class ExpenseUpdateSerializer(serializers.ModelSerializer):
         fields = ("creator", "name", "value")
 
     def has_access(self, instance, validated_data):
+        creator = self._context["request"].user
+        validated_data["creator"] = creator
         if (
             validated_data["creator"] != instance.creator
             or validated_data["creator"] != instance.budget.creator

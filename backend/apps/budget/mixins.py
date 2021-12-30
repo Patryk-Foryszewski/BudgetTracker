@@ -21,7 +21,8 @@ class HasAccessMixin:
 
 
 class AddCreatorMixin:
-    def initialize_request(self, request, *args, **kwargs):
-        initialized_request = super().initialize_request(request, *args, **kwargs)
-        initialized_request.data["creator"] = initialized_request.user.id
-        return initialized_request
+    def validate(self, attrs):
+        validated = super().validate(attrs)
+        creator = self._context["request"].user
+        validated["creator"] = creator
+        return validated
