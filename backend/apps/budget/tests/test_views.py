@@ -5,8 +5,15 @@ from faker import Faker
 from rest_framework import status
 from rest_framework.test import force_authenticate
 
-from ..views import BudgetCreate, BudgetDetail, BudgetList, BudgetUpdate, ExpenseCreate
-from .factories import BudgetFactory, UserFactory
+from ..views import (
+    BudgetCreate,
+    BudgetDetail,
+    BudgetList,
+    BudgetUpdate,
+    ExpenseCreate,
+    ExpenseUpdate,
+)
+from .factories import BudgetFactory, ExpenseFactory, UserFactory
 from .utils import request_factory
 
 
@@ -188,25 +195,33 @@ class UpdateExpense(TestCase):
     def setUpTestData(cls) -> None:
         cls.user_1 = UserFactory()
         cls.user_2 = UserFactory()
+        cls.user_3 = UserFactory()
         cls.budget = BudgetFactory(creator=cls.user_1)
+        cls.expense = ExpenseFactory(creator=cls.user_1, budget=cls.budget)
 
-    def test_add_participants_to_budget(self):
+    def test_update_expense_by_creator(self):
         fake = Faker(["pl_PL", "la"])
-        participant1 = UserFactory()
-        participant2 = UserFactory()
-        participant3 = UserFactory()
         data = {
             "name": fake.sentence(nb_words=1),
-            "content": fake.sentence(nb_words=30, variable_nb_words=False),
-            "participants": [
-                str(participant1.id),
-                str(participant2.id),
-                str(participant3.id),
-            ],
+            "budget": self.budget.pk,
+            "value": 10,
         }
-        request = request_factory.post(
-            "/", data=json.dumps(data), content_type="application/json"
-        )
-        force_authenticate(request, user=self.user)
-        response = BudgetCreate.as_view()(request)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        request = request_factory.patch("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.user_1)
+
+        response = ExpenseUpdate.as_view()(request, pk=self.expense.pk)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_update_expense_by_not_creator_or_participant(self):
+        fake = Faker(["pl_PL", "la"])
+        data = {
+            "name": fake.sentence(nb_words=1),
+            "budget": self.budget.pk,
+            "value": 10,
+        }
+        request = request_factory.patch("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.user_2)
+
+        response = ExpenseUpdate.as_view()(request, pk=self.expense.pk)
+        print("RESPONSE", response.__dict__)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

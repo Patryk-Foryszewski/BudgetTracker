@@ -63,7 +63,7 @@ class ExpenseCreate(AddCreatorMixin, CreateAPIView):
     model = Expense
 
 
-class ExpenseUpdate(UpdateAPIView):
+class ExpenseUpdate(AddCreatorMixin, UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ExpenseUpdateSerializer
     queryset = Expense.objects.all()

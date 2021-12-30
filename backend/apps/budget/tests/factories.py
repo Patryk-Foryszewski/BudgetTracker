@@ -23,7 +23,10 @@ class BudgetFactory(DjangoModelFactory):
 
 
 class ExpenseFactory(DjangoModelFactory):
-    name = Faker("sentence", nb_words=1)
-
     class Meta:
         model = Expense
+
+    name = Faker("sentence", nb_words=1)
+    value = Faker(
+        "pydecimal", left_digits=6, right_digits=2, min_value=0, max_value=100000
+    )

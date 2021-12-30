@@ -61,9 +61,10 @@ class Expense(BaseMixin):
         Budget, related_name="expenses", on_delete=models.PROTECT
     )
 
+    def __str__(self):
+        return f"Expense {self.name}, {self.creator}, {self.value}"
+
     def save(self, *args, **kwargs):
-        print("SAVE", args, kwargs)
-        self.has_access()
         self.full_clean()
         return super().save(*args, **kwargs)
 
@@ -72,12 +73,21 @@ class Expense(BaseMixin):
             Q(pk=self.budget_id)
             & (Q(creator=self.creator_id) | Q(participants=self.creator_id))
         ).first()
-
+        print("HAS ACCESS 1 |", vars(self))
         if not creator_or_participant:
             raise PermissionDenied(
                 "User not allowed to create expenses for this budget"
             )
-
+        print(
+            "BC or EC",
+            self.creator,
+            "|",
+            self.creator.id,
+            "|",
+            creator_or_participant.creator.id,
+            "|",
+            self.creator_id,
+        )
         if self.creator and (
             self.creator.id != self.creator_id
             or creator_or_participant.creator.id != self.creator_id
@@ -85,10 +95,3 @@ class Expense(BaseMixin):
             raise PermissionDenied(
                 "Only Budget Creator or Expense Creator can edit Expense"
             )
-
-        # if creator_or_participant.creator.id != self.creator_id and \
-        #     self.creator.id != self.creator_id:
-        #
-        #     raise PermissionDenied(
-        #         "User not allowed to create expenses for this budget"
-        #     )

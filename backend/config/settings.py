@@ -276,3 +276,5 @@ REST_AUTH_SERIALIZERS = {
 REST_USE_JWT = True
 
 PAGINATE_BY = 20
+
+# MESSAGE_STORAGE = "drf_messages.storage.DBStorage"
