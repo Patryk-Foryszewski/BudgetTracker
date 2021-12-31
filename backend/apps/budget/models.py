@@ -1,7 +1,5 @@
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
 from django.db import models
-from django.db.models import Q
 
 User = settings.AUTH_USER_MODEL
 
@@ -67,31 +65,3 @@ class Expense(BaseMixin):
     def save(self, *args, **kwargs):
         self.full_clean()
         return super().save(*args, **kwargs)
-
-    def has_access(self):
-        creator_or_participant = Budget.objects.filter(
-            Q(pk=self.budget_id)
-            & (Q(creator=self.creator_id) | Q(participants=self.creator_id))
-        ).first()
-        print("HAS ACCESS 1 |", vars(self))
-        if not creator_or_participant:
-            raise PermissionDenied(
-                "User not allowed to create expenses for this budget"
-            )
-        print(
-            "BC or EC",
-            self.creator,
-            "|",
-            self.creator.id,
-            "|",
-            creator_or_participant.creator.id,
-            "|",
-            self.creator_id,
-        )
-        if self.creator and (
-            self.creator.id != self.creator_id
-            or creator_or_participant.creator.id != self.creator_id
-        ):
-            raise PermissionDenied(
-                "Only Budget Creator or Expense Creator can edit Expense"
-            )
