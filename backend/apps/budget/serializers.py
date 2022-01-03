@@ -30,10 +30,19 @@ class BudgetListSerializer(serializers.ModelSerializer):
         fields = ["name", "creator"]
 
 
-class BudgetUpdateSerializer(serializers.ModelSerializer):
+class BudgetUpdateSerializer(AddCreatorMixin, serializers.ModelSerializer):
     class Meta:
         model = Budget
-        fields = ["name"]
+        fields = ["name", "content"]
+
+    def has_access(self, instance, validated_data):
+
+        if validated_data["creator"] != instance.creator:
+            raise PermissionDenied("Only Budget Creator can edit Expense")
+
+    def update(self, instance, validated_data):
+        self.has_access(instance, validated_data)
+        return super().update(instance, validated_data)
 
 
 class ExpenseSerializer(serializers.ModelSerializer):
@@ -74,14 +83,13 @@ class ExpenseCreateSerializer(AddCreatorMixin, serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class ExpenseUpdateSerializer(serializers.ModelSerializer):
+class ExpenseUpdateSerializer(AddCreatorMixin, serializers.ModelSerializer):
     class Meta:
         model = Expense
-        fields = ("creator", "name", "value")
+        fields = ("name", "value")
 
     def has_access(self, instance, validated_data):
-        creator = self._context["request"].user
-        validated_data["creator"] = creator
+
         if (
             validated_data["creator"] != instance.creator
             or validated_data["creator"] != instance.budget.creator
@@ -148,3 +156,9 @@ class BudgetDetailSerializer(serializers.ModelSerializer):
             "expenses_sum",
             "budget_left",
         )
+
+
+class DeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Budget
+        fields = ["pk"]

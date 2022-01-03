@@ -1,7 +1,9 @@
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from rest_framework.generics import (
     CreateAPIView,
+    DestroyAPIView,
     ListAPIView,
     RetrieveAPIView,
     UpdateAPIView,
@@ -14,6 +16,7 @@ from .serializers import (
     BudgetDetailSerializer,
     BudgetListSerializer,
     BudgetUpdateSerializer,
+    DeleteSerializer,
     ExpenseCreateSerializer,
     ExpenseUpdateSerializer,
 )
@@ -67,3 +70,18 @@ class ExpenseUpdate(UpdateAPIView):
     serializer_class = ExpenseUpdateSerializer
     queryset = Expense.objects.all()
     model = Expense
+
+
+class BudgetDelete(DestroyAPIView):
+    model = Budget
+    queryset = Budget.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = DeleteSerializer
+
+    def has_access(self, instance):
+        if instance.creator != self.request.user:
+            raise PermissionDenied("Only Creator of Budget is allowed to delete")
+
+    def perform_destroy(self, instance):
+        self.has_access(instance)
+        super().perform_destroy(instance)

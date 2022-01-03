@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from .mixins import FullCleanSaveMixin
+
 User = settings.AUTH_USER_MODEL
 
 
@@ -12,7 +14,7 @@ class TimeStamps(models.Model):
         abstract = True
 
 
-class BaseMixin(TimeStamps):
+class BaseMixin(FullCleanSaveMixin, TimeStamps):
     deleted = models.BooleanField(default=False)
 
     class Meta:
@@ -26,11 +28,7 @@ class Budget(BaseMixin):
     content = models.TextField(blank=True, default="")
 
     def __str__(self):
-        return f"Name: {self.name}, Creator {self.creator}"
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)
+        return f"Name: {self.name}, Creator: {self.creator}"
 
 
 class Income(BaseMixin):
@@ -39,15 +37,11 @@ class Income(BaseMixin):
     content = models.TextField(blank=True, default="")
     value = models.DecimalField(default=0, max_digits=8, decimal_places=2)
     budget = models.OneToOneField(
-        Budget, related_name="income", on_delete=models.PROTECT
+        Budget, related_name="income", on_delete=models.CASCADE
     )
 
     def __str__(self):
-        return f"{self.value}, {self.modified_date}, {self.creator}"
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)
+        return f"Income {self.name}, {self.creator}, {self.value}"
 
 
 class Expense(BaseMixin):
@@ -56,12 +50,8 @@ class Expense(BaseMixin):
     content = models.TextField(blank=True, default="")
     value = models.DecimalField(default=0, max_digits=8, decimal_places=2)
     budget = models.ForeignKey(
-        Budget, related_name="expenses", on_delete=models.PROTECT
+        Budget, related_name="expenses", on_delete=models.CASCADE
     )
 
     def __str__(self):
         return f"Expense {self.name}, {self.creator}, {self.value}"
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)

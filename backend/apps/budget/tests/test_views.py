@@ -7,6 +7,7 @@ from rest_framework.test import force_authenticate
 
 from ..views import (
     BudgetCreate,
+    BudgetDelete,
     BudgetDetail,
     BudgetList,
     BudgetUpdate,
@@ -24,9 +25,9 @@ class CreateBudgetView(TestCase):
 
     def test_unauthenticated_user(self):
         request = request_factory.post("/")
-        request.user = self.user
         response = BudgetCreate.as_view()(request)
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(401, response.status_code)
+        self.assertEqual(response.data["detail"].code, "not_authenticated")
 
     def test_required_field_name(self):
         request = request_factory.post("/", data={}, content_type="application/json")
@@ -140,6 +141,32 @@ class DetailBudget(TestCase):
 
         # for key in keys:
         #     self.assertIn(key, response.data.keys())
+
+
+class DeleteBudget(TestCase):
+    def setUp(self) -> None:
+        self.creator = UserFactory()
+        self.user_2 = UserFactory()
+        self.budget = BudgetFactory(creator=self.creator)
+
+    def test_delete_by_unauthenticated_user(self):
+        request = request_factory.post("/")
+        response = BudgetDelete.as_view()(request)
+        self.assertEqual(401, response.status_code)
+        self.assertEqual(response.data["detail"].code, "not_authenticated")
+
+    def test_delete_by_creator(self):
+        request = request_factory.delete("/", content_type="application/json")
+        force_authenticate(request, user=self.creator)
+        response = BudgetDelete.as_view()(request, pk=self.budget.pk)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_delete_by_user_that_is_not_creator(self):
+        request = request_factory.delete("/", content_type="application/json")
+        force_authenticate(request, user=self.user_2)
+        response = BudgetDelete.as_view()(request, pk=self.budget.pk)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.data["detail"].code, "permission_denied")
 
 
 class CreateExpense(TestCase):
