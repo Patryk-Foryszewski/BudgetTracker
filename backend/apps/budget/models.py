@@ -55,3 +55,14 @@ class Expense(BaseMixin):
 
     def __str__(self):
         return f"Expense {self.name}, {self.creator}, {self.value}"
+
+
+class Category(BaseMixin):
+    name = models.CharField(max_length=30)
+    budget = models.ForeignKey(
+        Budget, related_name="categories", on_delete=models.CASCADE
+    )
+    expense = models.ManyToManyField(Expense)
+
+    def __str__(self):
+        return f"Category: {self.name}, Budget: {self.budget}, Expense: {self.expense}"
