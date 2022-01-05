@@ -1,10 +1,10 @@
 from django.contrib.auth import get_user_model
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Q, Sum
 from rest_framework import serializers
 
 from .mixins import AddCreatorMixin
-from .models import Budget, Expense, Income
+from .models import Budget, Expense, Income, Category
 
 User = get_user_model()
 
@@ -99,6 +99,7 @@ class ExpenseUpdateSerializer(AddCreatorMixin, serializers.ModelSerializer):
             )
 
     def update(self, instance, validated_data):
+        # print('EXPENSE UPDATE SERIALIZER', instance, "|", validated_data)
         self.has_access(instance, validated_data)
         return super().update(instance, validated_data)
 
@@ -142,6 +143,7 @@ class BudgetDetailSerializer(serializers.ModelSerializer):
         income = income.value if income else 0
         return income - self.sum_up_expenses(budget)
 
+
     class Meta:
         model = Budget
         fields = (
@@ -158,7 +160,93 @@ class BudgetDetailSerializer(serializers.ModelSerializer):
         )
 
 
-class DeleteSerializer(serializers.ModelSerializer):
+class BudgetDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Budget
         fields = ["pk"]
+
+
+class CategoryCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Category
+        fields = ["name", "budget", "expenses"]
+
+    def validate(self, attrs):
+        validated_data = super().validate(attrs)
+        # Approach 1
+        if validated_data.get('expenses'):
+            for expense in validated_data['expenses']:
+                if not validated_data['budget'].expenses.filter(id=expense.id):
+                    raise ValidationError(f'This expense: {expense} is not related to given budget')
+        # Approach 2
+        # if validated_data.get('expenses'):
+        #     budget_expenses = validated_data['budget'].expenses.all()
+        #     for expense in validated_data['expenses']:
+        #         if expense not in budget_expenses:
+        #             raise ValidationError(f'This expense: {expense} is not related to given budget')
+
+        return validated_data
+
+
+class CategoryEditSerializer(AddCreatorMixin, serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ["pk", "name"]
+
+    def has_access(self, instance, validated_data):
+
+        if (
+            instance.budget.creator != validated_data['creator']
+            or validated_data['creator'] not in instance.budget.participants.all()
+        ):
+            raise PermissionDenied(
+                "Only Budget Creator or Participant can edit Category"
+            )
+
+    def update(self, instance, validated_data):
+        print('CATEGORY UPDATE', validated_data)
+        self.has_access(instance, validated_data)
+        return super().update(instance, validated_data)
+
+
+class CategoryDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ["pk"]
+
+
+class CategoryDeleteBindingSerializer(AddCreatorMixin, serializers.ModelSerializer):
+    expense = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Category
+        fields = ["pk", "expense"]
+
+    def get_expense(self, *_):
+        return self._context['request'].data['expense']
+
+    def has_access(self, instance, validated_data):
+        if (
+            instance.budget.creator != validated_data['creator']
+            and validated_data['creator'] not in instance.budget.participants.all()
+        ):
+            raise PermissionDenied(
+                "Only Budget Creator or Participant can remove Category binding"
+            )
+
+    def validate(self, attrs):
+        try:
+            self._context['request'].data['expense']
+        except KeyError as ke:
+            raise ValidationError(message=f"Missing required key {ke}", code="required")
+        validated_data = super().validate(attrs)
+        print('VALIDATE', attrs)
+        return validated_data
+
+    def update(self, instance, validated_data):
+        print('REMOVE BINDING', instance, "|", validated_data)
+        self.has_access(instance, validated_data)
+        # instance.expenses.remove(self.get_expense())
+        # instance.save()
+        return instance

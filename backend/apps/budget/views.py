@@ -10,15 +10,19 @@ from rest_framework.generics import (
 )
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Budget, Expense
+from .models import Budget, Expense, Category
 from .serializers import (
     BudgetCreateSerializer,
     BudgetDetailSerializer,
     BudgetListSerializer,
     BudgetUpdateSerializer,
-    DeleteSerializer,
+    BudgetDeleteSerializer,
     ExpenseCreateSerializer,
     ExpenseUpdateSerializer,
+    CategoryCreateSerializer,
+    CategoryEditSerializer,
+    CategoryDeleteSerializer,
+    CategoryDeleteBindingSerializer
 )
 
 PAGINATE_BY = settings.PAGINATE_BY
@@ -76,11 +80,54 @@ class BudgetDelete(DestroyAPIView):
     model = Budget
     queryset = Budget.objects.all()
     permission_classes = [IsAuthenticated]
-    serializer_class = DeleteSerializer
+    serializer_class = BudgetDeleteSerializer
 
     def has_access(self, instance):
         if instance.creator != self.request.user:
             raise PermissionDenied("Only Creator of Budget is allowed to delete")
+
+    def perform_destroy(self, instance):
+        self.has_access(instance)
+        super().perform_destroy(instance)
+
+
+class CategoryCreate(CreateAPIView):
+    model = Category
+    permission_classes = [IsAuthenticated]
+    serializer_class = CategoryCreateSerializer
+
+
+class CategoryEdit(UpdateAPIView):
+    model = Category
+    queryset = Category.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = CategoryEditSerializer
+
+
+class CategoryDeleteBinding(UpdateAPIView):
+    model = Category
+    queryset = Category.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = CategoryDeleteBindingSerializer
+
+    def perform_update(self, serializer):
+        # print('PERFORM UPDATE', serializer, self.kwargs)
+        return super().perform_update(serializer)
+
+
+class CategoryDelete(DestroyAPIView):
+    model = Category
+    queryset = Category.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = CategoryDeleteSerializer
+
+    def has_access(self, instance):
+
+        if (
+            instance.budget.creator != self.request.user
+            and self.request.user not in instance.budget.participants.all()
+        ):
+            raise PermissionDenied("Only Creator or Participant of Budget is allowed to delete")
 
     def perform_destroy(self, instance):
         self.has_access(instance)

@@ -58,11 +58,11 @@ class Expense(BaseMixin):
 
 
 class Category(BaseMixin):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=30, blank=False)
     budget = models.ForeignKey(
-        Budget, related_name="categories", on_delete=models.CASCADE
+        Budget, related_name="categories", on_delete=models.CASCADE, blank=False
     )
-    expense = models.ManyToManyField(Expense)
+    expenses = models.ManyToManyField(Expense, blank=True)
 
     def __str__(self):
-        return f"Category: {self.name}, Budget: {self.budget}, Expense: {self.expense}"
+        return f"Category: {self.name}, Budget: {self.budget}, Expenses: {self.expenses}"
