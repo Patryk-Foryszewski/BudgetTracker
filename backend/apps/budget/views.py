@@ -9,20 +9,22 @@ from rest_framework.generics import (
     UpdateAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
-
+from .mixins import BudgetCreatorOrParticipantMixin
 from .models import Budget, Expense, Category
 from .serializers import (
     BudgetCreateSerializer,
     BudgetDetailSerializer,
     BudgetListSerializer,
     BudgetUpdateSerializer,
+    BudgetRemoveParticipantsSerializer,
     BudgetDeleteSerializer,
     ExpenseCreateSerializer,
     ExpenseUpdateSerializer,
     CategoryCreateSerializer,
+    CategoryListSerializer,
     CategoryEditSerializer,
     CategoryDeleteSerializer,
-    CategoryDeleteBindingSerializer
+    CategorySerializer
 )
 
 PAGINATE_BY = settings.PAGINATE_BY
@@ -63,6 +65,13 @@ class BudgetDetail(RetrieveAPIView):
     model = Budget
 
 
+class BudgetRemoveParticipants(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = BudgetRemoveParticipantsSerializer
+    queryset = Budget.objects.all()
+    model = Budget
+
+
 class ExpenseCreate(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ExpenseCreateSerializer
@@ -97,22 +106,22 @@ class CategoryCreate(CreateAPIView):
     serializer_class = CategoryCreateSerializer
 
 
+class CategoryList(BudgetCreatorOrParticipantMixin, ListAPIView):
+    queryset = Category.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = CategorySerializer
+
+    def get_queryset(self):
+        budget = self.request.GET.get('budget')
+        self.has_access(self.request.user, budget)
+        return super().get_queryset()
+
+
 class CategoryEdit(UpdateAPIView):
     model = Category
     queryset = Category.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = CategoryEditSerializer
-
-
-class CategoryDeleteBinding(UpdateAPIView):
-    model = Category
-    queryset = Category.objects.all()
-    permission_classes = [IsAuthenticated]
-    serializer_class = CategoryDeleteBindingSerializer
-
-    def perform_update(self, serializer):
-        # print('PERFORM UPDATE', serializer, self.kwargs)
-        return super().perform_update(serializer)
 
 
 class CategoryDelete(DestroyAPIView):

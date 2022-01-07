@@ -1,5 +1,5 @@
 from django.test import TestCase
-from ..serializers import BudgetCreateSerializer, CategoryDeleteBindingSerializer
+from ..serializers import BudgetCreateSerializer, CategoryListSerializer
 from ..models import Budget
 from .factories import UserFactory
 from faker import Faker
@@ -32,25 +32,25 @@ class BudgetCreateSerializerTest(TestCase):
         self.assertEqual(list(data.keys()), ['name', 'content'])
 
 
-class DeleteCategoryBindingTest(TestCase):
+class CategoryListSerializerTest(TestCase):
 
     @classmethod
     def setUpTestData(cls) -> None:
+        fake = Faker(["pl_PL", "la"])
         cls.creator = UserFactory()
-        cls.budget_attributes = {
-            "pk": "1",
-            "expense": "1"
+        cls.attributes = {
+            "budget": "1"
         }
-        request = request_factory.post("/", data={"expense": "1"})
+        request = request_factory.post("/")
         request.user = cls.creator
         context = {
             'request': request
         }
 
-        cls.serializer = CategoryDeleteBindingSerializer(data=cls.budget_attributes, context=context)
+        cls.serializer = CategoryListSerializer(data=cls.attributes, context=context)
 
     def test_contains_expected_fields(self):
         self.serializer.is_valid()
         data = self.serializer.data
 
-        self.assertEqual(list(data.keys()), ['pk', 'expense'])
+        self.assertEqual(list(data.keys()), ['budget'])

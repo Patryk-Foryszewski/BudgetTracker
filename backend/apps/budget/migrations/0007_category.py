@@ -3,6 +3,7 @@
 import budget.mixins
 from django.db import migrations, models
 import django.db.models.deletion
+from ..models import FullCleanSaveMixin
 
 
 class Migration(migrations.Migration):
@@ -26,6 +27,6 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
-            bases=(budget.mixins.FullCleanSaveMixin, models.Model),
+            bases=(FullCleanSaveMixin, models.Model),
         ),
     ]

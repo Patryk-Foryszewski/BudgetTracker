@@ -1,9 +1,14 @@
 from django.conf import settings
 from django.db import models
 
-from .mixins import FullCleanSaveMixin
 
 User = settings.AUTH_USER_MODEL
+
+
+class FullCleanSaveMixin:
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
 
 
 class TimeStamps(models.Model):
@@ -28,7 +33,17 @@ class Budget(BaseMixin):
     content = models.TextField(blank=True, default="")
 
     def __str__(self):
-        return f"Name: {self.name}, Creator: {self.creator}"
+        return f"Budget: [{self.name}, Creator: {self.creator}]"
+
+
+class Category(BaseMixin):
+    name = models.CharField(max_length=30, blank=False)
+    budget = models.ForeignKey(
+        Budget, related_name="categories", on_delete=models.CASCADE, blank=False
+    )
+
+    def __str__(self):
+        return f"Category: [name: {self.name}]"
 
 
 class Income(BaseMixin):
@@ -41,7 +56,7 @@ class Income(BaseMixin):
     )
 
     def __str__(self):
-        return f"Income {self.name}, {self.creator}, {self.value}"
+        return f"Income: [name: {self.name}, value: {self.value}, creator: {self.creator}]"
 
 
 class Expense(BaseMixin):
@@ -52,17 +67,7 @@ class Expense(BaseMixin):
     budget = models.ForeignKey(
         Budget, related_name="expenses", on_delete=models.CASCADE
     )
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return f"Expense {self.name}, {self.creator}, {self.value}"
-
-
-class Category(BaseMixin):
-    name = models.CharField(max_length=30, blank=False)
-    budget = models.ForeignKey(
-        Budget, related_name="categories", on_delete=models.CASCADE, blank=False
-    )
-    expenses = models.ManyToManyField(Expense, blank=True)
-
-    def __str__(self):
-        return f"Category: {self.name}, Budget: {self.budget}, Expenses: {self.expenses}"
+        return f"Expense: [name: {self.name}, value: {self.value}, creator: {self.creator}, {self.category}]"

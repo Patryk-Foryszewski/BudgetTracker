@@ -11,18 +11,20 @@ from ..views import (
     BudgetDetail,
     BudgetList,
     BudgetUpdate,
+    BudgetRemoveParticipants,
     ExpenseCreate,
     ExpenseUpdate,
     CategoryCreate,
     CategoryDelete,
-    CategoryDeleteBinding
+    CategoryList
 
 )
 from .factories import BudgetFactory, ExpenseFactory, UserFactory, CategoryFactory
 from .utils import request_factory
+from ..models import Expense
 
 
-class CreateBudgetView(TestCase):
+class CreateBudget(TestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         cls.user = UserFactory()
@@ -49,7 +51,7 @@ class CreateBudgetView(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual("blank", str(response.data["name"][0].code))
 
-    def test_create_budget_and_assign_user(self):
+    def test_create_budget_and_add_creator(self):
         fake = Faker(["pl_PL", "la"])
         data = {
             "name": fake.sentence(nb_words=1),
@@ -85,27 +87,11 @@ class CreateBudgetView(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 
-class BudgetListView(TestCase):
-    @classmethod
-    def setUpTestData(cls) -> None:
-        cls.user1 = UserFactory()
-        cls.user2 = UserFactory()
-
-    def test_list_for_creator_field(self):
-        budgets_quantity = 4
-        for _ in range(budgets_quantity):
-            BudgetFactory(creator=self.user1)
-        request = request_factory.get("/")
-        force_authenticate(request, user=self.user1)
-        response = BudgetList.as_view()(request)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(budgets_quantity, len(response.data))
-
-
 class UpdateBudget(TestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         cls.user = UserFactory()
+        cls.participant = UserFactory()
         cls.budget = BudgetFactory(creator=cls.user)
 
     def test_update_budget_name(self):
@@ -117,6 +103,47 @@ class UpdateBudget(TestCase):
         self.budget.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.budget.name, data["name"])
+
+    def test_update_add_participant(self):
+        data = {"participants": [str(self.participant.id)]}
+        request = request_factory.patch("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.user)
+        response = BudgetUpdate.as_view()(request, pk=self.budget.pk)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class RemoveBudgetParticipant(TestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        cls.creator = UserFactory()
+        participant1 = UserFactory()
+        cls.participant2 = UserFactory()
+        participant3 = UserFactory()
+        cls.budget = BudgetFactory(creator=cls.creator)
+        cls.budget.participants.set([participant1, cls.participant2, participant3])
+
+    def test_remove_participant(self):
+        data = {'participants': [str(self.participant2.id)]}
+        request = request_factory.patch("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.creator)
+        response = BudgetRemoveParticipants.as_view()(request, pk=self.budget.pk)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class BudgetListView(TestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        cls.user1 = UserFactory()
+
+    def test_list_for_creator_field(self):
+        budgets_quantity = 4
+        for _ in range(budgets_quantity):
+            BudgetFactory(creator=self.user1)
+        request = request_factory.get("/")
+        force_authenticate(request, user=self.user1)
+        response = BudgetList.as_view()(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(budgets_quantity, len(response.data))
 
 
 class DetailBudget(TestCase):
@@ -220,6 +247,22 @@ class CreateExpense(TestCase):
         response = ExpenseCreate.as_view()(request, pk=self.budget.pk)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_create_expense_with_assigned_category(self):
+        category = CategoryFactory(budget=self.budget)
+        fake = Faker(["pl_PL", "la"])
+        data = {
+            "name": fake.sentence(nb_words=1),
+            "budget": self.budget.pk,
+            "value": 10,
+            "category": str(category.id)
+        }
+        request = request_factory.post("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.user_1)
+
+        response = ExpenseCreate.as_view()(request, pk=self.budget.pk)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        print('CATEGORY', Expense.objects.first())
+
 
 class UpdateExpense(TestCase):
     @classmethod
@@ -294,33 +337,38 @@ class CreateCategory(TestCase):
         response = CategoryCreate.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_create_category_and_add_relations_to_expenses(self):
-        expense_1 = ExpenseFactory(budget=self.budget, creator=self.user)
-        expense_2 = ExpenseFactory(budget=self.budget, creator=self.user)
-        data = {
-            "name": "fruits",
-            "budget": self.budget.id,
-            "expenses": [str(expense_1.id), str(expense_2.id)]
-        }
-        request = request_factory.post("/", data=json.dumps(data), content_type="application/json")
-        force_authenticate(request, user=self.user)
-        response = CategoryCreate.as_view()(request)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_create_category_and_add_wrong_relation_from_expense_to_budget(self):
-        budget_2 = BudgetFactory(creator=self.user)
-        expense_1 = ExpenseFactory(budget=self.budget, creator=self.user)
-        expense_2 = ExpenseFactory(budget=self.budget, creator=self.user)
-        expense_3 = ExpenseFactory(budget=budget_2, creator=self.user)
-        data = {
-            "name": "fruits",
-            "budget": self.budget.id,
-            "expenses": [str(expense_1.id), str(expense_2.id), str(expense_3.id)]
-        }
-        request = request_factory.post("/", data=json.dumps(data), content_type="application/json")
-        force_authenticate(request, user=self.user)
-        response = CategoryCreate.as_view()(request)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+class ListCategory(TestCase):
+
+    @classmethod
+    def setUpTestData(cls) -> None:
+        cls.creator = UserFactory()
+        cls.user_2 = UserFactory()
+        cls.budget = BudgetFactory(creator=cls.creator)
+        cls.category_1 = CategoryFactory(name="fruits", budget=cls.budget)
+        cls.category_2 = CategoryFactory(name="parts", budget=cls.budget)
+        cls.category_3 = CategoryFactory(name="cheeses", budget=cls.budget)
+
+    def test_delete_by_unauthenticated_user(self):
+        request = request_factory.post("/")
+        response = CategoryDelete.as_view()(request)
+        self.assertEqual(401, response.status_code)
+        self.assertEqual(response.data["detail"].code, "not_authenticated")
+
+    def test_list_categories_for_given_budget(self):
+        data = {"budget": str(self.budget.id)}
+
+        request = request_factory.get("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.creator)
+        response = CategoryList.as_view()(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_list_categories_for_given_budget_by_user_that_is_not_budget_creator_or_participant(self):
+        data = {"budget": str(self.budget.id)}
+        request = request_factory.get("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.user_2)
+        response = CategoryList.as_view()(request)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class DeleteCategory(TestCase):
@@ -337,49 +385,16 @@ class DeleteCategory(TestCase):
         self.assertEqual(401, response.status_code)
         self.assertEqual(response.data["detail"].code, "not_authenticated")
 
-    def test_delete_by_creator(self):
+    def test_delete_by_creator_of_budget(self):
         request = request_factory.delete("/", content_type="application/json")
         force_authenticate(request, user=self.creator)
         response = CategoryDelete.as_view()(request, pk=self.category.pk)
-        print('RESPONSE', response.__dict__)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    def test_delete_by_user_that_is_not_creator(self):
+    def test_delete_by_user_that_is_not_creator_of_budget(self):
         request = request_factory.delete("/", content_type="application/json")
         force_authenticate(request, user=self.user_2)
         response = CategoryDelete.as_view()(request, pk=self.budget.pk)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.data["detail"].code, "permission_denied")
-
-
-class DeleteCategoryBinding(TestCase):
-    @classmethod
-    def setUpTestData(cls) -> None:
-        cls.creator = UserFactory()
-        cls.user_2 = UserFactory()
-        cls.budget = BudgetFactory(creator=cls.creator)
-        cls.expense_1 = ExpenseFactory(budget=cls.budget, creator=cls.creator)
-        cls.expense_2 = ExpenseFactory(budget=cls.budget, creator=cls.creator)
-        cls.expense_3 = ExpenseFactory(budget=cls.budget, creator=cls.creator)
-        cls.category = CategoryFactory(name="fruits", budget=cls.budget)
-        for expense in [cls.expense_1, cls.expense_2, cls.expense_3]:
-            cls.category.expenses.add(expense)
-        print('BINDINGS_1', cls.category.expenses.all())
-
-    def test_delete_binding(self):
-        data = {"expense": str(self.expense_2.id)}
-        request = request_factory.patch("/", data=data, content_type="application/json")
-        force_authenticate(request, user=self.creator)
-        response = CategoryDeleteBinding.as_view()(request, pk=self.category.pk)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        print('RESPONSE', response.status_code)
-        self.category.refresh_from_db()
-        print('BINDINGS_2', self.category.expenses.all())
-
-    def test_delete_binding_without_expense_key(self):
-        request = request_factory.patch("/", content_type="application/json")
-        force_authenticate(request, user=self.creator)
-        response = CategoryDeleteBinding.as_view()(request, pk=self.category.pk)
-        print('RESPONSE', response.__dict__)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
