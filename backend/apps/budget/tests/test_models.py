@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from ..models import Category
-from .factories import BudgetFactory, ExpenseFactory
 
 
 class ValidationErrorTestMixin(object):
@@ -19,12 +18,10 @@ class ValidationErrorTestMixin(object):
             yield
             raise AssertionError("ValidationError not raised")
         except ValidationError as e:
-            print('KEYS', e.message_dict.keys())
             self.assertEqual(set(fields), set(e.message_dict.keys()))
 
 
 class CategoryModelTester(ValidationErrorTestMixin, TestCase):
-
     @classmethod
     def setUpTestData(cls) -> None:
         """Create instance of Book model to perform tests."""
@@ -32,7 +29,6 @@ class CategoryModelTester(ValidationErrorTestMixin, TestCase):
     def test_category_must_have_name_budget_and_expense(self):
         with self.assert_validation_errors(["name", "budget"]):
             Category.objects.create()
-
 
 
 # class CreateInvalidBook(ValidationErrorTestMixin, TestCase):

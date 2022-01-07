@@ -10,18 +10,17 @@ from ..views import (
     BudgetDelete,
     BudgetDetail,
     BudgetList,
-    BudgetUpdate,
     BudgetRemoveParticipants,
-    ExpenseCreate,
-    ExpenseUpdate,
+    BudgetUpdate,
     CategoryCreate,
     CategoryDelete,
-    CategoryList
-
+    CategoryEdit,
+    CategoryList,
+    ExpenseCreate,
+    ExpenseUpdate,
 )
-from .factories import BudgetFactory, ExpenseFactory, UserFactory, CategoryFactory
+from .factories import BudgetFactory, CategoryFactory, ExpenseFactory, UserFactory
 from .utils import request_factory
-from ..models import Expense
 
 
 class CreateBudget(TestCase):
@@ -123,7 +122,7 @@ class RemoveBudgetParticipant(TestCase):
         cls.budget.participants.set([participant1, cls.participant2, participant3])
 
     def test_remove_participant(self):
-        data = {'participants': [str(self.participant2.id)]}
+        data = {"participants": [str(self.participant2.id)]}
         request = request_factory.patch("/", data=data, content_type="application/json")
         force_authenticate(request, user=self.creator)
         response = BudgetRemoveParticipants.as_view()(request, pk=self.budget.pk)
@@ -254,14 +253,13 @@ class CreateExpense(TestCase):
             "name": fake.sentence(nb_words=1),
             "budget": self.budget.pk,
             "value": 10,
-            "category": str(category.id)
+            "category": str(category.id),
         }
         request = request_factory.post("/", data=data, content_type="application/json")
         force_authenticate(request, user=self.user_1)
 
         response = ExpenseCreate.as_view()(request, pk=self.budget.pk)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        print('CATEGORY', Expense.objects.first())
 
 
 class UpdateExpense(TestCase):
@@ -301,7 +299,6 @@ class UpdateExpense(TestCase):
 
 
 class CreateCategory(TestCase):
-
     @classmethod
     def setUpTestData(cls) -> None:
         cls.user = UserFactory()
@@ -321,17 +318,16 @@ class CreateCategory(TestCase):
         self.assertEqual("required", str(response.data["name"][0].code))
 
     def test_required_field_budget(self):
-        request = request_factory.post("/", data={"name": "fruits"}, content_type="application/json")
+        request = request_factory.post(
+            "/", data={"name": "fruits"}, content_type="application/json"
+        )
         force_authenticate(request, user=self.user)
         response = CategoryCreate.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual("required", str(response.data["budget"][0].code))
 
     def test_create_category_with_valid_data(self):
-        data = {
-            "name": "fruits",
-            "budget": self.budget.id
-        }
+        data = {"name": "fruits", "budget": self.budget.id}
         request = request_factory.post("/", data=data, content_type="application/json")
         force_authenticate(request, user=self.user)
         response = CategoryCreate.as_view()(request)
@@ -339,7 +335,6 @@ class CreateCategory(TestCase):
 
 
 class ListCategory(TestCase):
-
     @classmethod
     def setUpTestData(cls) -> None:
         cls.creator = UserFactory()
@@ -363,7 +358,9 @@ class ListCategory(TestCase):
         response = CategoryList.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_list_categories_for_given_budget_by_user_that_is_not_budget_creator_or_participant(self):
+    def test_list_categories_by_user_that_is_not_budget_creator_or_participant(
+        self,
+    ):
         data = {"budget": str(self.budget.id)}
         request = request_factory.get("/", data=data, content_type="application/json")
         force_authenticate(request, user=self.user_2)
@@ -371,8 +368,28 @@ class ListCategory(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class DeleteCategory(TestCase):
+class EditCategory(TestCase):
+    def setUp(self) -> None:
+        self.creator = UserFactory()
+        self.user_2 = UserFactory()
+        self.budget = BudgetFactory(creator=self.creator)
+        self.category = CategoryFactory(name="fruits", budget=self.budget)
 
+    def test_edit_by_unauthenticated_user(self):
+        request = request_factory.post("/")
+        response = CategoryEdit.as_view()(request)
+        self.assertEqual(401, response.status_code)
+        self.assertEqual(response.data["detail"].code, "not_authenticated")
+
+    def test_edit_category_name(self):
+        data = {"name": "tools"}
+        request = request_factory.patch("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.creator)
+        response = CategoryEdit.as_view()(request, pk=self.category.pk)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class DeleteCategory(TestCase):
     def setUp(self) -> None:
         self.creator = UserFactory()
         self.user_2 = UserFactory()
@@ -397,4 +414,3 @@ class DeleteCategory(TestCase):
         response = CategoryDelete.as_view()(request, pk=self.budget.pk)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.data["detail"].code, "permission_denied")
-

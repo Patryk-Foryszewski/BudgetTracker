@@ -1,6 +1,7 @@
 from django.core.exceptions import PermissionDenied
-from .models import Budget
 from django.db.models import Q
+
+from .models import Budget
 
 
 class AddCreatorMixin:
@@ -14,11 +15,7 @@ class AddCreatorMixin:
 class BudgetCreatorOrParticipantMixin(AddCreatorMixin):
     def has_access(self, user, budget):
         creator_or_participant = Budget.objects.filter(
-            Q(pk=budget)
-            & (
-                Q(creator=user)
-                | Q(participants=user)
-            )
+            Q(pk=budget) & (Q(creator=user) | Q(participants=user))
         ).first()
 
         if not creator_or_participant:
@@ -27,21 +24,13 @@ class BudgetCreatorOrParticipantMixin(AddCreatorMixin):
             )
 
     def _remove_creator(self, validated_data):
-        if getattr(self, 'remove_creator', False):
-            validated_data.pop('creator')
-
-    def save(self, *args, **kwargs):
-        return super().save(*args, **kwargs)
+        if getattr(self, "remove_creator", False):
+            validated_data.pop("creator")
 
     def create(self, validated_data):
-        self.has_access(validated_data['creator'].id, validated_data['budget'].id)
+        self.has_access(validated_data["creator"].id, validated_data["budget"].id)
         self._remove_creator(validated_data)
         return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        self.has_access(validated_data['creator'].id, validated_data['budget'].id)
-        self._remove_creator(validated_data)
-        return super().update(instance, validated_data)
 
 
 class InstanceOrBudgetCreatorMixin(AddCreatorMixin):

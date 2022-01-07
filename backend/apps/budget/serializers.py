@@ -1,10 +1,14 @@
 from django.contrib.auth import get_user_model
-from django.core.exceptions import PermissionDenied, ValidationError
-from django.db.models import Q, Sum
+from django.core.exceptions import PermissionDenied
+from django.db.models import Sum
 from rest_framework import serializers
 
-from .mixins import AddCreatorMixin, BudgetCreatorOrParticipantMixin, InstanceOrBudgetCreatorMixin
-from .models import Budget, Expense, Income, Category
+from .mixins import (
+    AddCreatorMixin,
+    BudgetCreatorOrParticipantMixin,
+    InstanceOrBudgetCreatorMixin,
+)
+from .models import Budget, Category, Expense, Income
 
 User = get_user_model()
 
@@ -50,7 +54,7 @@ class BudgetRemoveParticipantsSerializer(serializers.ModelSerializer):
         fields = ["participants"]
 
     def update(self, instance, validated_data):
-        for participant in validated_data['participants']:
+        for participant in validated_data["participants"]:
             instance.participants.remove(participant)
         instance.save()
         return instance
@@ -70,13 +74,17 @@ class ExpenseSerializer(serializers.ModelSerializer):
         )
 
 
-class ExpenseCreateSerializer(BudgetCreatorOrParticipantMixin, serializers.ModelSerializer):
+class ExpenseCreateSerializer(
+    BudgetCreatorOrParticipantMixin, serializers.ModelSerializer
+):
     class Meta:
         model = Expense
         fields = ("name", "budget", "value", "category")
 
 
-class ExpenseUpdateSerializer(InstanceOrBudgetCreatorMixin, serializers.ModelSerializer):
+class ExpenseUpdateSerializer(
+    InstanceOrBudgetCreatorMixin, serializers.ModelSerializer
+):
     class Meta:
         model = Expense
         fields = ("name", "value", "category")
@@ -143,7 +151,9 @@ class BudgetDeleteSerializer(serializers.ModelSerializer):
         fields = ["pk"]
 
 
-class CategoryCreateSerializer(BudgetCreatorOrParticipantMixin, serializers.ModelSerializer):
+class CategoryCreateSerializer(
+    BudgetCreatorOrParticipantMixin, serializers.ModelSerializer
+):
     remove_creator = True
 
     class Meta:
@@ -157,7 +167,9 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ("pk", "name")
 
 
-class CategoryListSerializer(BudgetCreatorOrParticipantMixin, serializers.ModelSerializer):
+class CategoryListSerializer(
+    BudgetCreatorOrParticipantMixin, serializers.ModelSerializer
+):
     class Meta:
         model = Category
         fields = ["budget"]
@@ -169,10 +181,16 @@ class CategoryEditSerializer(serializers.ModelSerializer):
         fields = ["pk", "name"]
 
     def has_access(self, instance):
+
         user = self._context["request"].user
+        print(
+            "HAS ACCESS TO EDIT",
+            instance.budget.creator != user,
+            user not in instance.budget.participants.all(),
+        )
         if (
             instance.budget.creator != user
-            or user not in instance.budget.participants.all()
+            and user not in instance.budget.participants.all()
         ):
             raise PermissionDenied(
                 "Only Budget Creator or Participant can edit Category"
