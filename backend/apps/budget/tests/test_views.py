@@ -90,6 +90,7 @@ class UpdateBudget(TestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         cls.user = UserFactory()
+        cls.user_2 = UserFactory()
         cls.participant = UserFactory()
         cls.budget = BudgetFactory(creator=cls.user)
 
@@ -109,6 +110,14 @@ class UpdateBudget(TestCase):
         force_authenticate(request, user=self.user)
         response = BudgetUpdate.as_view()(request, pk=self.budget.pk)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_update_budget_by_user_that_is_not_creator_or_participant(self):
+        fake = Faker(["pl_PL", "la"])
+        data = {"name": fake.sentence(nb_words=1)}
+        request = request_factory.patch("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.user_2)
+        response = BudgetUpdate.as_view()(request, pk=self.budget.pk)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class RemoveBudgetParticipant(TestCase):
@@ -358,9 +367,7 @@ class ListCategory(TestCase):
         response = CategoryList.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_list_categories_by_user_that_is_not_budget_creator_or_participant(
-        self,
-    ):
+    def test_list_categories_by_user_that_is_not_budget_creator_or_participant(self):
         data = {"budget": str(self.budget.id)}
         request = request_factory.get("/", data=data, content_type="application/json")
         force_authenticate(request, user=self.user_2)
@@ -380,6 +387,13 @@ class EditCategory(TestCase):
         response = CategoryEdit.as_view()(request)
         self.assertEqual(401, response.status_code)
         self.assertEqual(response.data["detail"].code, "not_authenticated")
+
+    def test_edit_category_by_user_that_is_not_budget_creator_or_participant(self):
+        data = {"name": "tools"}
+        request = request_factory.patch("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.user_2)
+        response = CategoryEdit.as_view()(request, pk=self.category.pk)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_edit_category_name(self):
         data = {"name": "tools"}

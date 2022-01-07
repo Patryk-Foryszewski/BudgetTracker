@@ -183,11 +183,6 @@ class CategoryEditSerializer(serializers.ModelSerializer):
     def has_access(self, instance):
 
         user = self._context["request"].user
-        print(
-            "HAS ACCESS TO EDIT",
-            instance.budget.creator != user,
-            user not in instance.budget.participants.all(),
-        )
         if (
             instance.budget.creator != user
             and user not in instance.budget.participants.all()
