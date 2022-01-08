@@ -1,0 +1,21 @@
+Budget:
+  1: create budget
+    a: add participants
+  2: edit budget
+  3: remove budget
+  4: remove participant
+
+Income:
+  1: Create income and add to budget
+  2: Edit income - name, value
+
+Expense:
+  1: Create expense and add to budget
+  2: Edit expense - name, value
+  3: Remove expense
+
+Category
+  1: Create category
+  2: Add category to expense
+  3: Remove category relation to expense
+  4: Edit category

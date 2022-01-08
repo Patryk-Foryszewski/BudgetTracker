@@ -2,7 +2,7 @@ from django.conf import settings
 from factory import Faker
 from factory.django import DjangoModelFactory
 
-from ..models import Budget, Expense, Category
+from ..models import Budget, Category, Expense, Income
 
 User = settings.AUTH_USER_MODEL
 
@@ -37,3 +37,10 @@ class CategoryFactory(DjangoModelFactory):
 
     class Meta:
         model = Category
+
+
+class IncomeFactory(DjangoModelFactory):
+    name = Faker("sentence", nb_words=1)
+
+    class Meta:
+        model = Income

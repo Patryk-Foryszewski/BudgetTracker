@@ -3,7 +3,8 @@ from contextlib import contextmanager
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from ..models import Category
+from ..models import Budget, Category, Expense, Income
+from .factories import BudgetFactory, CategoryFactory, UserFactory
 
 
 class ValidationErrorTestMixin(object):
@@ -16,33 +17,78 @@ class ValidationErrorTestMixin(object):
         """
         try:
             yield
-            raise AssertionError("ValidationError not raised")
         except ValidationError as e:
             self.assertEqual(set(fields), set(e.message_dict.keys()))
+        else:
+            raise AssertionError("ValidationError not raised")
 
 
-class CategoryModelTester(ValidationErrorTestMixin, TestCase):
-    @classmethod
-    def setUpTestData(cls) -> None:
-        """Create instance of Book model to perform tests."""
+class ModelTester(ValidationErrorTestMixin, TestCase):
+    """Combines ValidationErrorTestMixin with TestCase.
 
-    def test_category_must_have_name_budget_and_expense(self):
+    Adds "assert_validation_errors" method to validate
+    if required fields are filled
+
+    """
+
+
+class BudgetModelTester(ModelTester):
+    def test_budget_must_have_name_and_creator(self):
+        with self.assert_validation_errors(["name", "creator"]):
+            Budget.objects.create()
+
+    def test_str_method(self):
+        creator = UserFactory(username="Philip")
+        name = "Service"
+        budget = Budget.objects.create(name=name, creator=creator)
+        supposed = f"Budget: [{name}, Creator: {creator}]"
+        self.assertEqual(supposed, str(budget))
+
+
+class IncomeModelTester(ModelTester):
+    def test_expense_must_have_name_budget_and_expense(self):
+        with self.assert_validation_errors(["name", "budget", "creator"]):
+            Expense.objects.create()
+
+    def test_str_method(self):
+        creator = UserFactory(username="Philip")
+        name = "Service"
+        budget = BudgetFactory(creator=creator)
+        income = Income.objects.create(name=name, creator=creator, budget=budget)
+
+        supposed = (
+            f"Income: [name: {income.name}, value: "
+            f"{income.value}, creator: {income.creator}]"
+        )
+        self.assertEqual(supposed, str(income))
+
+
+class ExpenseModelTester(ModelTester):
+    def test_expense_must_have_name_budget_and_expense(self):
+        with self.assert_validation_errors(["name", "budget", "creator"]):
+            Expense.objects.create()
+
+    def test_str_method(self):
+        creator = UserFactory(username="Philip")
+        name = "Service"
+        budget = BudgetFactory(creator=creator)
+        expense = Expense.objects.create(name=name, creator=creator, budget=budget)
+        supposed = (
+            f"Expense: [name: {expense.name}, value: {expense.value}, creator: "
+            f"{expense.creator}, {expense.category}]"
+        )
+        self.assertEqual(supposed, str(expense))
+
+
+class CategoryModelTester(ModelTester):
+    def test_category_must_have_name_and_budget(self):
         with self.assert_validation_errors(["name", "budget"]):
             Category.objects.create()
 
-
-# class CreateInvalidBook(ValidationErrorTestMixin, TestCase):
-#     def test_book_must_have_title_and_author(self):
-#         book = Book(
-#             title="",
-#             author="",
-#             published_date="2008-10-15",
-#             pages="",
-#             isbn_10="",
-#             isbn_13="9788389192868",
-#             cover_uri="image.jpg",
-#             language="en",
-#         )
-#
-#         with self.assert_validation_errors(["title", "author", "slug"]):
-#             book.full_clean()
+    def test_str_method(self):
+        creator = UserFactory(username="Philip")
+        name = "Service"
+        budget = BudgetFactory(creator=creator)
+        category = CategoryFactory(name=name, budget=budget)
+        supposed = f"Category: [name: {category.name}]"
+        self.assertEqual(supposed, str(category))
