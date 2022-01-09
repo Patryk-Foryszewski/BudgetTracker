@@ -3,8 +3,9 @@ from contextlib import contextmanager
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from ...users.tests.factories import UserFactory
 from ..models import Budget, Category, Expense, Income
-from .factories import BudgetFactory, CategoryFactory, UserFactory
+from .factories import BudgetFactory, CategoryFactory
 
 
 class ValidationErrorTestMixin(object):

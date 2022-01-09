@@ -7,14 +7,6 @@ from ..models import Budget, Category, Expense, Income
 User = settings.AUTH_USER_MODEL
 
 
-class UserFactory(DjangoModelFactory):
-    class Meta:
-        model = User
-
-    username = Faker("name")
-    email = Faker("email")
-
-
 class BudgetFactory(DjangoModelFactory):
     class Meta:
         model = Budget

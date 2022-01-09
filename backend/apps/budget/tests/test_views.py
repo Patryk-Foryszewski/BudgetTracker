@@ -1,5 +1,6 @@
 import json
 
+from apps.users.tests.factories import UserFactory
 from django.test import TestCase
 from faker import Faker
 from rest_framework import status
@@ -19,7 +20,7 @@ from ..views import (
     ExpenseCreate,
     ExpenseUpdate,
 )
-from .factories import BudgetFactory, CategoryFactory, ExpenseFactory, UserFactory
+from .factories import BudgetFactory, CategoryFactory, ExpenseFactory
 from .utils import request_factory
 
 
