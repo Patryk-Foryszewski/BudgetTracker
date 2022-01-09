@@ -17,7 +17,7 @@ class AddFriends(TestCase):
         cls.friend_1 = UserFactory()
         cls.friend_2 = UserFactory()
 
-    def test_add_friend(self):
+    def test_add_two_friends(self):
         data = json.dumps({"friends_list": [self.friend_1.pk]})
         request = request_factory.patch("/", data=data, content_type="application/json")
         force_authenticate(request, user=self.user)
@@ -29,8 +29,7 @@ class AddFriends(TestCase):
         force_authenticate(request, user=self.user)
         response = FriendsAdd.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        print("U@", self.friend_2)
-        print("RESPONSE", self.user.friends.friends_list.all())
+        self.assertEqual(2, len(self.user.friends.friends_list.all()))
 
 
 class ListFriends(TestCase):

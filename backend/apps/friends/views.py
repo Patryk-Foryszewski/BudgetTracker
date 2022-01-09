@@ -3,7 +3,11 @@ from rest_framework.generics import ListAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Friends
-from .serializers import FriendsAddSerializer, FriendsSerializer
+from .serializers import (
+    FriendsAddSerializer,
+    FriendsRemoveSerializer,
+    FriendsSerializer,
+)
 
 User = get_user_model()
 
@@ -13,6 +17,13 @@ class FriendsAdd(UpdateAPIView):
     queryset = Friends.objects.all()
     serializer_class = FriendsAddSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return Friends.objects.get_or_create(user=self.request.user)[0]
+
+
+class FriendsRemove(FriendsAdd):
+    serializer_class = FriendsRemoveSerializer
 
     def get_object(self):
         return Friends.objects.get_or_create(user=self.request.user)[0]

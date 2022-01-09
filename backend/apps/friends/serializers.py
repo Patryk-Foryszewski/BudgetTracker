@@ -12,11 +12,20 @@ class FriendsAddSerializer(serializers.ModelSerializer):
         fields = ["friends_list"]
 
     def update(self, instance, validated_data):
-        print("UPDATE", instance, validated_data)
-        # instance.friends.bulk_update(validated_data['friends_list'], "friends_list")
-        for friend in validated_data["friends_list"]:
-            instance.friends_list.add(friend)
-        return super().update(instance, validated_data)
+        instance.friends_list.add(*validated_data["friends_list"])
+        instance.save()
+        return instance
+
+
+class FriendsRemoveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Friends
+        fields = ["friends_list"]
+
+    def update(self, instance, validated_data):
+        instance.friends_list.remove(*validated_data["friends_list"])
+        instance.save()
+        return instance
 
 
 class FriendsSerializer(serializers.ModelSerializer):
