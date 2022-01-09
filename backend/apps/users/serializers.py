@@ -1,5 +1,5 @@
 from allauth.account import app_settings as allauth_settings
-from apps.users.models import Friends, User
+from apps.users.models import User
 from dj_rest_auth.registration.serializers import (
     RegisterSerializer as DJ_Rest_Register_Serializer,
 )
@@ -59,22 +59,3 @@ class LoginSerializer(DJ_Login_Serializer):
     # overwrite username field to None so it is not required to "Login"
     username = None
     email = serializers.EmailField(required=True, allow_blank=True)
-
-
-class FriendsAddSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Friends
-        fields = ["friends_list"]
-
-    def update(self, instance, validated_data):
-        print("UPDATE", instance, validated_data)
-        # instance.friends.bulk_update(validated_data['friends_list'], "friends_list")
-        for friend in validated_data["friends_list"]:
-            instance.friends_list.add(friend)
-        return super().update(instance, validated_data)
-
-
-class FriendsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["pk", "username", "avatar"]

@@ -1,14 +1,9 @@
-from apps.users.models import Friends, User
+from apps.users.models import User
 from django.db.models import Q
-from rest_framework.generics import ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 
-from .serializers import (
-    FriendsAddSerializer,
-    FriendsSerializer,
-    UserListSerializer,
-    UserSerializer,
-)
+from .serializers import UserListSerializer, UserSerializer
 
 
 class UserProfile(RetrieveAPIView):
@@ -47,21 +42,3 @@ class UsersList(ListAPIView):
             Q(username__icontains=value) | Q(email__exact=value)
         )
         return queryset.order_by("-post_time")
-
-
-class FriendsAdd(UpdateAPIView):
-    model = Friends
-    queryset = Friends.objects.all()
-    serializer_class = FriendsAddSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self):
-        return Friends.objects.get_or_create(user=self.request.user)[0]
-
-
-class FriendsList(ListAPIView):
-    serializer_class = FriendsSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return self.request.user.friends.friends_list.all()

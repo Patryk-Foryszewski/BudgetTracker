@@ -64,7 +64,7 @@ THIRD_PARTY_APPS = [
     "dj_rest_auth.registration",
 ]
 
-LOCAL_APPS = ["apps.users", "apps.budget"]
+LOCAL_APPS = ["apps.users", "apps.friends", "apps.budget"]
 
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
