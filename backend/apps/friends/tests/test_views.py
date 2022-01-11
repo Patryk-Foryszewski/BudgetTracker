@@ -57,7 +57,7 @@ class RemoveFriend(TestCase):
     def test_unauthenticated_user(self):
         request = request_factory.patch("/")
         response = FriendsRemove.as_view()(request)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_remove_friend(self):
         data = json.dumps({"friends_list": [self.friend_1.pk]})
