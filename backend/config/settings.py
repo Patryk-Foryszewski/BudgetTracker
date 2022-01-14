@@ -143,12 +143,13 @@ USE_TZ = True
 STATIC_ROOT = ROOT_DIR / "staticfiles"
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
-STATIC_URL = "/staticfiles/"
+STATIC_URL = "staticfiles/"
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 STATICFILES_DIRS = [
     ROOT_DIR / "static",
 ]
+
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
@@ -161,10 +162,11 @@ STATICFILES_FINDERS = [
 MEDIA_ROOT = ROOT_DIR / "media"
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#media-url
-MEDIA_URL = "/media/"
+MEDIA_URL = "media/"
 
 # URL Configuration
 ROOT_URLCONF = "config.urls"
+
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = "config.wsgi.application"

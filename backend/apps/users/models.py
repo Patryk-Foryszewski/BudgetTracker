@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -65,3 +66,17 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        user = super().from_db(db, field_names, values)
+        if not user.avatar:
+            user.avatar = str(
+                settings.MEDIA_ROOT / "defaults/images/default_avatar.png"
+            )
+
+        return user

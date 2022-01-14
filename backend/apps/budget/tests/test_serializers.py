@@ -1,7 +1,7 @@
+from apps.users.tests.factories import UserFactory
 from django.test import TestCase
 from faker import Faker
 
-from ...users.tests.factories import UserFactory
 from ..serializers import BudgetCreateSerializer, CategoryListSerializer
 from .utils import request_factory
 

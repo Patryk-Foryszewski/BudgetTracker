@@ -9,24 +9,33 @@ from django.db import transaction
 from rest_framework import serializers
 
 
-class UserSerializer(serializers.ModelSerializer):
-    registered_at = serializers.DateTimeField(format="%H:%M %d.%m.%Y", read_only=True)
+class GetAvatarMixin:
     avatar = serializers.SerializerMethodField(read_only=True)
+
+    def get_avatar(self, obj):
+        return (
+            obj.avatar.url
+            if obj.avatar
+            else settings.MEDIA_ROOT / "defaults/images/default_avatar.png"
+        )
+
+
+class UserSerializer(GetAvatarMixin, serializers.ModelSerializer):
+    registered_at = serializers.DateTimeField(format="%H:%M %d.%m.%Y", read_only=True)
     username = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
         fields = ["email", "avatar", "username", "registered_at"]
 
-    def get_avatar(self, obj):
-        return (
-            obj.avatar.url
-            if obj.avatar
-            else settings.STATIC_URL + "images/default_avatar.png"
-        )
-
     def get_username(self, obj):
         return obj.username
+
+
+class UserLimitedSerializer(GetAvatarMixin, serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["username", "avatar"]
 
 
 class UserListSerializer(UserSerializer):
