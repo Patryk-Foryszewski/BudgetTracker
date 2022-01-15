@@ -20,7 +20,7 @@ class GetAvatarMixin:
         )
 
 
-class UserSerializer(GetAvatarMixin, serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     registered_at = serializers.DateTimeField(format="%H:%M %d.%m.%Y", read_only=True)
     username = serializers.SerializerMethodField(read_only=True)
 
@@ -32,10 +32,23 @@ class UserSerializer(GetAvatarMixin, serializers.ModelSerializer):
         return obj.username
 
 
-class UserLimitedSerializer(GetAvatarMixin, serializers.ModelSerializer):
+class UserLimitedSerializer(serializers.ModelSerializer):
+    # pk = serializers.ReadOnlyField()
+
     class Meta:
         model = User
-        fields = ["username", "avatar"]
+        fields = ["pk", "username", "avatar"]
+
+    # def is_valid(self, raise_exception=False):
+    #     valid = super().is_valid(raise_exception=raise_exception)
+    #     print('VALID', valid)
+    #     return valid
+    #
+    # def validate(self, attrs):
+    #     validated = super().validate(attrs)
+    #     print("VALIDATED", attrs, validated)
+    #     print('CONTEXT', self._context)
+    #     return validated
 
 
 class UserListSerializer(UserSerializer):

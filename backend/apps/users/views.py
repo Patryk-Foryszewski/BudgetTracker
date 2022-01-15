@@ -3,13 +3,13 @@ from django.db.models import Q
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 
-from .serializers import UserListSerializer, UserSerializer
+from .serializers import UserLimitedSerializer, UserListSerializer
 
 
 class UserProfile(RetrieveAPIView):
     """Use this view to check user profile."""
 
-    serializer_class = UserSerializer
+    serializer_class = UserLimitedSerializer
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
 
