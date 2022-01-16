@@ -31,6 +31,14 @@ PAGINATE_BY = settings.PAGINATE_BY
 
 
 class BudgetCreate(CreateAPIView):
+    """Endpoint for creating budget.
+
+    requesting user will be added as "creator"
+    Required fields:
+    name
+
+    """
+
     model = Budget
     permission_classes = [IsAuthenticated]
     serializer_class = BudgetCreateSerializer
