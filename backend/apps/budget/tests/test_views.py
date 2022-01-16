@@ -154,7 +154,7 @@ class BudgetListView(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(budgets_quantity, len(response.data))
         self.assertListEqual(
-            list(dict(response.data[0]).keys()), ["pk", "name", "creator"]
+            list(dict(response.data["results"][0]).keys()), ["pk", "name", "creator"]
         )
 
 
@@ -194,7 +194,18 @@ class DetailBudget(TestCase):
         ]
         self.assertEqual(len(keys), len(response.data.keys()))
         self.assertListEqual(keys, list(response.data.keys()))
-        print("RESPONSE DATA", response.data)
+
+    def test_first_page_paginator(self):
+        request = request_factory.get("/", content_type="application/json")
+        force_authenticate(request, user=self.user)
+        response = BudgetDetail.as_view()(request, pk=self.budget.pk)
+        self.assertEqual(4, len(response.data["expenses"]))
+
+    def test_second_page_paginator(self):
+        request = request_factory.get({"page": 2})
+        force_authenticate(request, user=self.user)
+        response = BudgetDetail.as_view()(request, pk=self.budget.pk, page=2)
+        self.assertEqual(4, len(response.data["expenses"]))
 
 
 class DeleteBudget(TestCase):

@@ -1,6 +1,8 @@
 from apps.users.serializers import UserLimitedSerializer
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import EmptyPage, Paginator
 from django.db.models import Sum
 from rest_framework import serializers
 
@@ -118,7 +120,9 @@ class IncomeSerializer(serializers.ModelSerializer):
 class BudgetDetailSerializer(serializers.ModelSerializer):
     creator = UserLimitedSerializer()
     income = IncomeSerializer(many=True)
-    expenses = ExpenseSerializer(many=True)
+    expenses = serializers.SerializerMethodField(
+        "paginated_expenses"
+    )  # ExpenseSerializer(many=True)
     expenses_sum = serializers.SerializerMethodField()
     budget_left = serializers.SerializerMethodField()
 
@@ -149,6 +153,20 @@ class BudgetDetailSerializer(serializers.ModelSerializer):
         income = Income.objects.filter(budget=budget).first()
         income = income.value if income else 0
         return income - self.sum_up_expenses(budget)
+
+    def paginated_expenses(self, budget):
+        size = self.context["view"].kwargs.get(
+            "size", settings.REST_FRAMEWORK["PAGE_SIZE"]
+        )
+        paginator = Paginator(budget.expenses.all().order_by("-created_date"), size)
+        page = self.context["view"].kwargs.get("page", 1)
+        try:
+            tracks = paginator.page(page)
+        except EmptyPage:
+            tracks = paginator.page(1)
+
+        serializer = ExpenseSerializer(tracks, many=True)
+        return serializer.data
 
 
 class BudgetDeleteSerializer(serializers.ModelSerializer):

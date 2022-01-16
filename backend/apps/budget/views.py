@@ -9,22 +9,22 @@ from rest_framework.generics import (
     UpdateAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
+
 from .mixins import BudgetCreatorOrParticipantMixin
-from .models import Budget, Expense, Category
+from .models import Budget, Category, Expense
 from .serializers import (
     BudgetCreateSerializer,
+    BudgetDeleteSerializer,
     BudgetDetailSerializer,
     BudgetListSerializer,
-    BudgetUpdateSerializer,
     BudgetRemoveParticipantsSerializer,
-    BudgetDeleteSerializer,
+    BudgetUpdateSerializer,
+    CategoryCreateSerializer,
+    CategoryDeleteSerializer,
+    CategoryEditSerializer,
+    CategorySerializer,
     ExpenseCreateSerializer,
     ExpenseUpdateSerializer,
-    CategoryCreateSerializer,
-    CategoryListSerializer,
-    CategoryEditSerializer,
-    CategoryDeleteSerializer,
-    CategorySerializer
 )
 
 PAGINATE_BY = settings.PAGINATE_BY
@@ -44,9 +44,13 @@ class BudgetList(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user_budgets = self.model.objects.filter(
-            Q(creator=self.request.user) | Q(participants=self.request.user)
-        ).all()
+        user_budgets = (
+            self.model.objects.filter(
+                Q(creator=self.request.user) | Q(participants=self.request.user)
+            )
+            .all()
+            .order_by("-created_date")
+        )
 
         return user_budgets
 
@@ -112,7 +116,7 @@ class CategoryList(BudgetCreatorOrParticipantMixin, ListAPIView):
     serializer_class = CategorySerializer
 
     def get_queryset(self):
-        budget = self.request.GET.get('budget')
+        budget = self.request.GET.get("budget")
         self.has_access(self.request.user, budget)
         return super().get_queryset()
 
@@ -136,7 +140,9 @@ class CategoryDelete(DestroyAPIView):
             instance.budget.creator != self.request.user
             and self.request.user not in instance.budget.participants.all()
         ):
-            raise PermissionDenied("Only Creator or Participant of Budget is allowed to delete")
+            raise PermissionDenied(
+                "Only Creator or Participant of Budget is allowed to delete"
+            )
 
     def perform_destroy(self, instance):
         self.has_access(instance)
