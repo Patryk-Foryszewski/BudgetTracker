@@ -153,6 +153,9 @@ class BudgetListView(TestCase):
         response = BudgetList.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(budgets_quantity, len(response.data))
+        self.assertListEqual(
+            list(dict(response.data[0]).keys()), ["pk", "name", "creator"]
+        )
 
 
 class DetailBudget(TestCase):
@@ -160,6 +163,18 @@ class DetailBudget(TestCase):
     def setUpTestData(cls) -> None:
         cls.user = UserFactory()
         cls.budget = BudgetFactory(creator=cls.user)
+        cls.expense_1 = ExpenseFactory(
+            budget=cls.budget, creator=cls.user, value="10.41"
+        )
+        cls.expense_2 = ExpenseFactory(
+            budget=cls.budget, creator=cls.user, value="15.74"
+        )
+        cls.expense_3 = ExpenseFactory(
+            budget=cls.budget, creator=cls.user, value="21.13"
+        )
+        cls.expense_4 = ExpenseFactory(
+            budget=cls.budget, creator=cls.user, value="62.90"
+        )
 
     def test_details_keys(self):
         request = request_factory.get("/", content_type="application/json")
@@ -178,9 +193,8 @@ class DetailBudget(TestCase):
             "budget_left",
         ]
         self.assertEqual(len(keys), len(response.data.keys()))
-
-        # for key in keys:
-        #     self.assertIn(key, response.data.keys())
+        self.assertListEqual(keys, list(response.data.keys()))
+        print("RESPONSE DATA", response.data)
 
 
 class DeleteBudget(TestCase):
@@ -220,7 +234,7 @@ class CreateExpense(TestCase):
     def test_create_expense_without_required_keys(self):
         fake = Faker(["pl_PL", "la"])
 
-        data = {"name": fake.sentence(nb_words=1), "value": 10}
+        data = {"name": fake.sentence(nb_words=1), "value": 10.41}
         request = request_factory.post("/", data=data, content_type="application/json")
         force_authenticate(request, user=self.user_1)
 
@@ -248,7 +262,7 @@ class CreateExpense(TestCase):
         data = {
             "name": fake.sentence(nb_words=1),
             "budget": self.budget.pk,
-            "value": 10,
+            "value": 10.41,
         }
         request = request_factory.post("/", data=data, content_type="application/json")
         force_authenticate(request, user=self.user_1)

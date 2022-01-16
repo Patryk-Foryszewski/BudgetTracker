@@ -2,7 +2,12 @@ from apps.users.tests.factories import UserFactory
 from django.test import TestCase
 from faker import Faker
 
-from ..serializers import BudgetCreateSerializer, CategoryListSerializer
+from ..serializers import (
+    BudgetCreateSerializer,
+    BudgetListSerializer,
+    CategoryListSerializer,
+)
+from .factories import BudgetFactory
 from .utils import request_factory
 
 
@@ -28,6 +33,23 @@ class BudgetCreateSerializerTest(TestCase):
         data = self.serializer.data
 
         self.assertEqual(list(data.keys()), ["name", "content"])
+
+
+class BudgetListSerializerTester(TestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+
+        cls.user = UserFactory()
+        budget = BudgetFactory(creator=cls.user)
+        cls.serializer = BudgetListSerializer(
+            data={"pk": budget.pk, "creator": cls.user, "name": "family"}
+        )
+
+    def test_contains_expected_fields(self):
+        self.serializer.is_valid()
+        data = self.serializer.data
+
+        self.assertEqual(list(data.keys()), ["name", "creator"])
 
 
 class CategoryListSerializerTest(TestCase):

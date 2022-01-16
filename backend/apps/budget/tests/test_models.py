@@ -1,3 +1,5 @@
+import decimal
+
 from apps.users.tests.factories import UserFactory
 
 from ..models import Budget, Category, Expense, Income
@@ -51,6 +53,16 @@ class ExpenseModelTester(ModelTester):
             f"{expense.creator}, {expense.category}]"
         )
         self.assertEqual(supposed, str(expense))
+
+    def test_value_must_have_two_decimal_palaces(self):
+        creator = UserFactory(username="Philip")
+        name = "Service"
+        budget = BudgetFactory(creator=creator)
+        # expense_f = ExpenseFactory(creator=creator, budget=budget)
+        expense = Expense.objects.create(
+            name=name, creator=creator, budget=budget, value="10.41"
+        )
+        self.assertEqual(expense.value, decimal.Decimal("10.41"))
 
 
 class CategoryModelTester(ModelTester):

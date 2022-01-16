@@ -1,3 +1,4 @@
+from apps.users.serializers import UserLimitedSerializer
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.db.models import Sum
@@ -27,11 +28,11 @@ class UserListingField(serializers.RelatedField):
 
 
 class BudgetListSerializer(serializers.ModelSerializer):
-    creator = UserListingField(queryset=User.objects.all())
+    creator = UserLimitedSerializer()  # UserListingField(queryset=User.objects.all())
 
     class Meta:
         model = Budget
-        fields = ["name", "creator"]
+        fields = ["pk", "name", "creator"]
 
 
 class BudgetUpdateSerializer(AddCreatorMixin, serializers.ModelSerializer):
@@ -61,6 +62,8 @@ class BudgetRemoveParticipantsSerializer(serializers.ModelSerializer):
 
 
 class ExpenseSerializer(serializers.ModelSerializer):
+    creator = UserLimitedSerializer()
+
     class Meta:
         model = Expense
         fields = (
@@ -97,6 +100,8 @@ class IncomeUpdateSerializer(serializers.ModelSerializer):
 
 
 class IncomeSerializer(serializers.ModelSerializer):
+    creator = UserLimitedSerializer()
+
     class Meta:
         model = Income
         fields = (
@@ -111,6 +116,7 @@ class IncomeSerializer(serializers.ModelSerializer):
 
 
 class BudgetDetailSerializer(serializers.ModelSerializer):
+    creator = UserLimitedSerializer()
     income = IncomeSerializer(many=True)
     expenses = ExpenseSerializer(many=True)
     expenses_sum = serializers.SerializerMethodField()

@@ -78,5 +78,4 @@ class User(AbstractBaseUser, PermissionsMixin):
             user.avatar = str(
                 settings.MEDIA_ROOT / "defaults/images/default_avatar.png"
             )
-
         return user
