@@ -1,8 +1,8 @@
 from django.conf.urls import include
 from django.urls import path
-from django.contrib.auth import logout
-
+from friends import urls as friends_urls
 
 urlpatterns = [
-    path('', include('users.urls')),
+    path("", include("users.urls")),
+    path("friends/", include((friends_urls, "friends"), namespace="friends")),
 ]
