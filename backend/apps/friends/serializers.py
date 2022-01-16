@@ -7,6 +7,8 @@ User = get_user_model()
 
 
 class FriendsAddSerializer(serializers.ModelSerializer):
+    """This id docstring of serializer"""
+
     class Meta:
         model = Friends
         fields = ["friends_list"]
