@@ -31,12 +31,28 @@ PAGINATE_BY = settings.PAGINATE_BY
 
 
 class BudgetCreate(CreateAPIView):
-    """Endpoint for creating budget.
+    """
+    Endpoint for creating budget.
 
-    requesting user will be added as "creator"
-    Required fields:
-    name
+    ### Fields descriptions:
 
+       * name: name of a budget.
+       * content: text field for notes etc.
+       * participants: list of users ids that will have access to the budget
+
+    ### Reqired fields:
+
+       * name
+
+    ### Response status codes:
+
+       * 201 OK CREATED
+       * 400 BAD REQUEST. Wrong data, lack of required field.
+       * 401 UNAUTHORIZED. Only logged used can create budget.
+
+    ### Avalible methods:
+
+       * POST
     """
 
     model = Budget
@@ -45,7 +61,6 @@ class BudgetCreate(CreateAPIView):
 
 
 class BudgetList(ListAPIView):
-    paginate_by = PAGINATE_BY
     model = Budget
     ordering = ["created_date"]
     serializer_class = BudgetListSerializer

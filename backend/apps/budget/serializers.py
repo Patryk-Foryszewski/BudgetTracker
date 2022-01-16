@@ -21,7 +21,7 @@ class BudgetCreateSerializer(AddCreatorMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Budget
-        fields = ["name", "content"]
+        fields = ["name", "content", "participants"]
 
 
 class UserListingField(serializers.RelatedField):

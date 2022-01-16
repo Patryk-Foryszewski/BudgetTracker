@@ -6,6 +6,7 @@ from faker import Faker
 from rest_framework import status
 from rest_framework.test import force_authenticate
 
+from ..models import Budget
 from ..views import (
     BudgetCreate,
     BudgetDelete,
@@ -85,6 +86,8 @@ class CreateBudget(TestCase):
         force_authenticate(request, user=self.user)
         response = BudgetCreate.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        participants = Budget.objects.all().first().participants.all()
+        self.assertEqual(len(participants), 3)
 
 
 class UpdateBudget(TestCase):

@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.db import models
 
-
 User = settings.AUTH_USER_MODEL
 
 
@@ -28,7 +27,7 @@ class BaseMixin(FullCleanSaveMixin, TimeStamps):
 
 class Budget(BaseMixin):
     creator = models.ForeignKey(User, related_name="creator", on_delete=models.PROTECT)
-    participants = models.ManyToManyField(User, related_name="participants")
+    participants = models.ManyToManyField(User, related_name="participants", blank=True)
     name = models.CharField(max_length=30)
     content = models.TextField(blank=True, default="")
 
@@ -56,7 +55,9 @@ class Income(BaseMixin):
     )
 
     def __str__(self):
-        return f"Income: [name: {self.name}, value: {self.value}, creator: {self.creator}]"
+        return (
+            f"Income: [name: {self.name}, value: {self.value}, creator: {self.creator}]"
+        )
 
 
 class Expense(BaseMixin):
@@ -67,7 +68,12 @@ class Expense(BaseMixin):
     budget = models.ForeignKey(
         Budget, related_name="expenses", on_delete=models.CASCADE
     )
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.ForeignKey(
+        Category, on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     def __str__(self):
-        return f"Expense: [name: {self.name}, value: {self.value}, creator: {self.creator}, {self.category}]"
+        return (
+            f"Expense: [name: {self.name}, value: {self.value}, "
+            f"creator: {self.creator}, {self.category}]"
+        )
