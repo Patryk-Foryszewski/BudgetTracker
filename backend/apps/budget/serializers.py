@@ -38,6 +38,10 @@ class BudgetListSerializer(serializers.ModelSerializer):
 
 
 class BudgetUpdateSerializer(AddCreatorMixin, serializers.ModelSerializer):
+    name = serializers.CharField(
+        max_length=Budget._meta.get_field("name").max_length, required=False
+    )
+
     class Meta:
         model = Budget
         fields = ["name", "content"]
