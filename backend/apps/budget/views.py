@@ -289,6 +289,35 @@ class BudgetDelete(DestroyAPIView):
 
 
 class CategoryCreate(CreateAPIView):
+    """
+    Endpoint for creating category.
+
+    Categories can be considered as tags
+    that works only within one budget.
+
+    ### Fields descriptions:
+
+       * name - name of category
+       * budget - id of budget that caegory is created for
+
+    ### Required fields:
+
+       * name
+       * budget
+
+
+    ### Response status codes:
+
+       * 201 OK CREATED
+       * 401 UNAUTHORIZED. Only logged user can try to perform action.
+       * 403 FORBIDDEN. Only creator or participant of budget can
+         create category.
+
+    ### Avalible methods:
+
+       * POST
+    """
+
     model = Category
     permission_classes = [IsAuthenticated]
     serializer_class = CategoryCreateSerializer

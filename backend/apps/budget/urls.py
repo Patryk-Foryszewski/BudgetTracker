@@ -7,6 +7,7 @@ from .views import (
     BudgetList,
     BudgetRemoveParticipants,
     BudgetUpdate,
+    CategoryCreate,
     ExpenseCreate,
     ExpenseUpdate,
 )
@@ -24,4 +25,5 @@ urlpatterns = [
     ),
     path("create_expense/", ExpenseCreate.as_view(), name="create_expense"),
     path("update_expense/", ExpenseUpdate.as_view(), name="update_expense"),
+    path("create_category/", CategoryCreate.as_view(), name="create_category"),
 ]
