@@ -75,7 +75,7 @@ class BudgetList(ListAPIView):
 
     ### Avalible methods:
 
-       * POST
+       * GET
     """
 
     model = Budget
@@ -118,6 +118,7 @@ class BudgetUpdate(UpdateAPIView):
     serializer_class = BudgetUpdateSerializer
     queryset = Budget.objects.all()
     model = Budget
+    http_method_names = ["patch"]
 
 
 class BudgetDetail(RetrieveAPIView):

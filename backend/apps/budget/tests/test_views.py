@@ -98,6 +98,12 @@ class UpdateBudget(TestCase):
         cls.participant = UserFactory()
         cls.budget = BudgetFactory(creator=cls.user)
 
+    def test_unauthenticated_user(self):
+        request = request_factory.post("/")
+        response = BudgetUpdate.as_view()(request)
+        self.assertEqual(401, response.status_code)
+        self.assertEqual(response.data["detail"].code, "not_authenticated")
+
     def test_update_budget_name(self):
         fake = Faker(["pl_PL", "la"])
         data = {"name": fake.sentence(nb_words=1)}
