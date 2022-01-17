@@ -269,10 +269,17 @@ class DeleteBudget(TestCase):
 class CreateExpense(TestCase):
     @classmethod
     def setUpTestData(cls) -> None:
+        cls.view = ExpenseCreate
         cls.user_1 = UserFactory()
         cls.user_2 = UserFactory()
         cls.budget = BudgetFactory(creator=cls.user_1)
         # cls.expense = ExpenseFactory(creator=cls.user, budget=cls.budget)
+
+    def test_create_by_unauthenticated_user(self):
+        request = request_factory.post("/")
+        response = self.view.as_view()(request)
+        self.assertEqual(401, response.status_code)
+        self.assertEqual(response.data["detail"].code, "not_authenticated")
 
     def test_create_expense_without_required_keys(self):
         fake = Faker(["pl_PL", "la"])
@@ -281,7 +288,7 @@ class CreateExpense(TestCase):
         request = request_factory.post("/", data=data, content_type="application/json")
         force_authenticate(request, user=self.user_1)
 
-        response = ExpenseCreate.as_view()(request, pk=self.budget.pk)
+        response = self.view.as_view()(request, pk=self.budget.pk)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

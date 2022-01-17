@@ -6,6 +6,7 @@ from .views import (
     BudgetList,
     BudgetRemoveParticipants,
     BudgetUpdate,
+    ExpenseCreate,
 )
 
 urlpatterns = [
@@ -18,4 +19,5 @@ urlpatterns = [
         BudgetRemoveParticipants.as_view(),
         name="remove_participants",
     ),
+    path("create_expense/", ExpenseCreate.as_view(), name="create_expense"),
 ]

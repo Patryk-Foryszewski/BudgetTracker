@@ -191,6 +191,32 @@ class BudgetRemoveParticipants(UpdateAPIView):
 
 
 class ExpenseCreate(CreateAPIView):
+    """
+    Endpoint for creating expense for given budget.
+
+    ### Fields descriptions:
+
+       * name - name of expense.
+       * budget - id of budget the expense is created for.
+       * value - value of expense. Max decimal places = 2.
+       * category - id of category the expense is assigned to.
+
+    ### Reqired fields:
+
+       * name
+       * budget
+
+    ### Response status codes:
+
+       * 201 OK CREATED
+       * 401 UNAUTHORIZED. Only logged user can try to add expense.
+       * 403 FORBIDDEN. Only creator or participant can add expense.
+
+    ### Avalible methods:
+
+       * POST
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = ExpenseCreateSerializer
     model = Expense
