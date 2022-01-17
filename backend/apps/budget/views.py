@@ -127,7 +127,7 @@ class BudgetDetail(RetrieveAPIView):
 
     ### Query params:
 
-       * &budget=x - specify budget id.
+       * &pk=x - specify budget id.
 
     ### Fields descriptions:
 
