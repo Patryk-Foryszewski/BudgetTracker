@@ -324,14 +324,33 @@ class CategoryCreate(CreateAPIView):
 
 
 class CategoryList(BudgetCreatorOrParticipantMixin, ListAPIView):
-    queryset = Category.objects.all()
+    """
+    Returns list of categories for given budget.
+
+    ### Query params:
+
+       * &budget=x - specify budget id
+
+    ### Response status codes:
+
+       * 200 OK
+       * 401 UNAUTHORIZED. Only logged user can try to perform action.
+       * 403 FORBIDDEN. Only creator or participant of budget can
+         receive categories.
+
+    ### Avalible methods:
+
+       * GET
+    """
+
+    queryset = Category.objects.all().order_by("name")
     permission_classes = [IsAuthenticated]
     serializer_class = CategorySerializer
 
     def get_queryset(self):
-        budget = self.request.GET.get("budget")
+        budget = self.kwargs.get("budget")
         self.has_access(self.request.user, budget)
-        return super().get_queryset()
+        return Category.objects.filter(budget=budget).order_by("name")
 
 
 class CategoryEdit(UpdateAPIView):

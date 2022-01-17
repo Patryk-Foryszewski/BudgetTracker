@@ -430,12 +430,15 @@ class CreateCategory(TestCase):
 class ListCategory(TestCase):
     @classmethod
     def setUpTestData(cls) -> None:
+        cls.view = CategoryList
         cls.creator = UserFactory()
         cls.user_2 = UserFactory()
         cls.budget = BudgetFactory(creator=cls.creator)
+        cls.budget_2 = BudgetFactory(creator=cls.creator)
         cls.category_1 = CategoryFactory(name="fruits", budget=cls.budget)
         cls.category_2 = CategoryFactory(name="parts", budget=cls.budget)
         cls.category_3 = CategoryFactory(name="cheeses", budget=cls.budget)
+        cls.category_4 = CategoryFactory(name="cheeses", budget=cls.budget_2)
 
     def test_delete_by_unauthenticated_user(self):
         request = request_factory.post("/")
@@ -444,18 +447,17 @@ class ListCategory(TestCase):
         self.assertEqual(response.data["detail"].code, "not_authenticated")
 
     def test_list_categories_for_given_budget(self):
-        data = {"budget": str(self.budget.id)}
 
-        request = request_factory.get("/", data=data, content_type="application/json")
+        request = request_factory.get("/", content_type="application/json")
         force_authenticate(request, user=self.creator)
-        response = CategoryList.as_view()(request)
+        response = self.view.as_view()(request, budget=self.budget.id)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(3, response.data["count"])
 
     def test_list_categories_by_user_that_is_not_budget_creator_or_participant(self):
-        data = {"budget": str(self.budget.id)}
-        request = request_factory.get("/", data=data, content_type="application/json")
+        request = request_factory.get("/", content_type="application/json")
         force_authenticate(request, user=self.user_2)
-        response = CategoryList.as_view()(request)
+        response = self.view.as_view()(request, budget=self.budget.id)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
