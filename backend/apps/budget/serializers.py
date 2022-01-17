@@ -1,10 +1,10 @@
-from apps.users.serializers import UserLimitedSerializer
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import EmptyPage, Paginator
 from django.db.models import Sum
 from rest_framework import serializers
+from users.serializers import UserLimitedSerializer
 
 from .mixins import (
     AddCreatorMixin,

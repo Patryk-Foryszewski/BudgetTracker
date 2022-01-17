@@ -147,6 +147,12 @@ class BudgetListView(TestCase):
     def setUpTestData(cls) -> None:
         cls.user1 = UserFactory()
 
+    def test_unauthenticated_user(self):
+        request = request_factory.post("/")
+        response = BudgetList.as_view()(request)
+        self.assertEqual(401, response.status_code)
+        self.assertEqual(response.data["detail"].code, "not_authenticated")
+
     def test_list_for_creator_field(self):
         budgets_quantity = 4
         for _ in range(budgets_quantity):

@@ -61,6 +61,23 @@ class BudgetCreate(CreateAPIView):
 
 
 class BudgetList(ListAPIView):
+    """
+    Returns budgets for requesting user.
+
+    ### Query params:
+
+       * &page=x - specify page.
+
+    ### Response status codes:
+
+       * 201 OK CREATED
+       * 401 UNAUTHORIZED. Only logged used can create budget.
+
+    ### Avalible methods:
+
+       * POST
+    """
+
     model = Budget
     ordering = ["created_date"]
     serializer_class = BudgetListSerializer
