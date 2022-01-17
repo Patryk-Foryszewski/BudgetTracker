@@ -40,7 +40,7 @@ class BudgetListSerializer(serializers.ModelSerializer):
 class BudgetUpdateSerializer(AddCreatorMixin, serializers.ModelSerializer):
     class Meta:
         model = Budget
-        fields = ["name", "content", "participants"]
+        fields = ["name", "content"]
 
     def has_access(self, instance, validated_data):
         if validated_data["creator"] != instance.creator:

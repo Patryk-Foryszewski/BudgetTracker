@@ -96,6 +96,24 @@ class BudgetList(ListAPIView):
 
 
 class BudgetUpdate(UpdateAPIView):
+    """
+    Endpoint for updating budget.
+
+    ### Query params:
+
+       * &pk=x - specify budget id.
+
+    ### Response status codes:
+
+       * 200 OK
+       * 401 UNAUTHORIZED. Only logged used can update budget.
+       * 403 FORBIDDEN. Only creator or participant can upadte
+
+    ### Avalible methods:
+
+       * PATCH
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = BudgetUpdateSerializer
     queryset = Budget.objects.all()
