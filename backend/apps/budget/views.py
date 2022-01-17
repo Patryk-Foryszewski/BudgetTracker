@@ -122,6 +122,38 @@ class BudgetUpdate(UpdateAPIView):
 
 
 class BudgetDetail(RetrieveAPIView):
+    """
+    Returns details of given budget id.
+
+    ### Query params:
+
+       * &budget=x - specify budget id.
+
+    ### Fields descriptions:
+
+       * pk - id of a budget
+       * name - budget name
+       * created_date - date of budget creation
+       * modified_date - last modified date
+       * creator - user that created the budget
+       * participants - list of users invited to participate
+       * income - value of budget income
+       * expenses - list of all expenses
+       * expenses_sum - sum of all expenses
+       * budget_left - income - expenses_sum
+
+
+    ### Response status codes:
+
+       * 200 OK
+       * 401 UNAUTHORIZED. Only logged used can update budget.
+       * 403 FORBIDDEN. Only creator or participant can upadte
+
+    ### Avalible methods:
+
+       * GET
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = BudgetDetailSerializer
     queryset = Budget.objects.all()
