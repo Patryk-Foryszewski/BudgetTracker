@@ -97,6 +97,10 @@ class ExpenseCreateSerializer(
 class ExpenseUpdateSerializer(
     InstanceOrBudgetCreatorMixin, serializers.ModelSerializer
 ):
+    name = serializers.CharField(
+        max_length=Expense._meta.get_field("name").max_length, required=False
+    )
+
     class Meta:
         model = Expense
         fields = ("name", "value", "category")

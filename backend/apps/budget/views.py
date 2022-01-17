@@ -223,10 +223,36 @@ class ExpenseCreate(CreateAPIView):
 
 
 class ExpenseUpdate(UpdateAPIView):
+    """
+    Endpoint for updating expense.
+
+    ### Query params:
+
+       * &pk=x - specify expense id
+
+    ### Fields descriptions:
+
+       * name - name of expense.
+       * value - value of expense. Max decimal places = 2.
+       * category - id of category the expense is assigned to.
+
+    ### Response status codes:
+
+       * 200 OK
+       * 401 UNAUTHORIZED. Only logged user can try to update expense.
+       * 403 FORBIDDEN. Only creator of expense or participant of budget can update
+         expense.
+
+    ### Avalible methods:
+
+       * PATCH
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = ExpenseUpdateSerializer
     queryset = Expense.objects.all()
     model = Expense
+    http_method_names = ["patch"]
 
 
 class BudgetDelete(DestroyAPIView):

@@ -339,11 +339,18 @@ class CreateExpense(TestCase):
 class UpdateExpense(TestCase):
     @classmethod
     def setUpTestData(cls) -> None:
+        cls.view = ExpenseUpdate
         cls.user_1 = UserFactory()
         cls.user_2 = UserFactory()
         cls.user_3 = UserFactory()
         cls.budget = BudgetFactory(creator=cls.user_1)
         cls.expense = ExpenseFactory(creator=cls.user_1, budget=cls.budget)
+
+    def test_request_by_unauthenticated_user(self):
+        request = request_factory.post("/")
+        response = self.view.as_view()(request)
+        self.assertEqual(401, response.status_code)
+        self.assertEqual(response.data["detail"].code, "not_authenticated")
 
     def test_update_expense_by_creator(self):
         fake = Faker(["pl_PL", "la"])
