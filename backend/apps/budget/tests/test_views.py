@@ -382,8 +382,12 @@ class UpdateExpense(TestCase):
 class CreateCategory(TestCase):
     @classmethod
     def setUpTestData(cls) -> None:
-        cls.user = UserFactory()
-        cls.budget = BudgetFactory(creator=cls.user)
+        cls.view = CategoryCreate
+        cls.creator = UserFactory()
+        cls.participant = UserFactory()
+        cls.outsider = UserFactory()
+        cls.budget = BudgetFactory(creator=cls.creator)
+        cls.participants = [cls.participant]
 
     def test_unauthenticated_user(self):
         request = request_factory.post("/")
@@ -393,7 +397,7 @@ class CreateCategory(TestCase):
 
     def test_required_field_name(self):
         request = request_factory.post("/", data={}, content_type="application/json")
-        force_authenticate(request, user=self.user)
+        force_authenticate(request, user=self.creator)
         response = BudgetCreate.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual("required", str(response.data["name"][0].code))
@@ -402,7 +406,7 @@ class CreateCategory(TestCase):
         request = request_factory.post(
             "/", data={"name": "fruits"}, content_type="application/json"
         )
-        force_authenticate(request, user=self.user)
+        force_authenticate(request, user=self.creator)
         response = CategoryCreate.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual("required", str(response.data["budget"][0].code))
@@ -410,9 +414,17 @@ class CreateCategory(TestCase):
     def test_create_category_with_valid_data(self):
         data = {"name": "fruits", "budget": self.budget.id}
         request = request_factory.post("/", data=data, content_type="application/json")
-        force_authenticate(request, user=self.user)
+        force_authenticate(request, user=self.creator)
         response = CategoryCreate.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_by_user_that_is_not_creator_or_participant(self):
+        data = {"name": "fruits", "budget": self.budget.id}
+        request = request_factory.post("/", data=data, content_type="application/json")
+
+        force_authenticate(request, user=self.outsider)
+        response = self.view.as_view()(request)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class ListCategory(TestCase):
