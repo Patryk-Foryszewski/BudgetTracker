@@ -263,7 +263,6 @@ class BudgetDelete(DestroyAPIView):
 
        * &pk=x - specify budget id
 
-
     ### Response status codes:
 
        * 204 OK DELETED
