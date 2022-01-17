@@ -162,22 +162,21 @@ class BudgetDetail(RetrieveAPIView):
 
 class BudgetRemoveParticipants(UpdateAPIView):
     """
-    Returns details of given budget id.
+    Endpoint for removing participants from budget.
 
     ### Query params:
 
-       * &budget=x - specify budget id.
+       * &pk=x - specify budget id.
 
     ### Fields descriptions:
 
        * participants - list of users ids to be removed from participants
 
-
     ### Response status codes:
 
        * 200 OK
-       * 401 UNAUTHORIZED. Only logged used can update budget.
-       * 403 FORBIDDEN. Only creator or participant can upadte
+       * 401 UNAUTHORIZED. Only logged user can try to remove participants.
+       * 403 FORBIDDEN. Only creator can remove participants.
 
     ### Avalible methods:
 
