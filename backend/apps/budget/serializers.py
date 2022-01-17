@@ -55,12 +55,15 @@ class BudgetUpdateSerializer(AddCreatorMixin, serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
-class BudgetRemoveParticipantsSerializer(serializers.ModelSerializer):
+class BudgetRemoveParticipantsSerializer(
+    InstanceOrBudgetCreatorMixin, serializers.ModelSerializer
+):
     class Meta:
         model = Budget
         fields = ["participants"]
 
     def update(self, instance, validated_data):
+        self.has_access(instance, validated_data)
         for participant in validated_data["participants"]:
             instance.participants.remove(participant)
         instance.save()

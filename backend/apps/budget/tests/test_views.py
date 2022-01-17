@@ -133,18 +133,35 @@ class UpdateBudget(TestCase):
 class RemoveBudgetParticipant(TestCase):
     @classmethod
     def setUpTestData(cls) -> None:
+        cls.view = BudgetRemoveParticipants
         cls.creator = UserFactory()
-        participant1 = UserFactory()
+        cls.user = UserFactory()
+        cls.participant1 = UserFactory()
         cls.participant2 = UserFactory()
-        participant3 = UserFactory()
+        cls.participant3 = UserFactory()
         cls.budget = BudgetFactory(creator=cls.creator)
-        cls.budget.participants.set([participant1, cls.participant2, participant3])
+        cls.budget.participants.set(
+            [cls.participant1, cls.participant2, cls.participant3]
+        )
+
+    def test_unauthenticated_user(self):
+        request = request_factory.post("/")
+        response = self.view.as_view()(request)
+        self.assertEqual(401, response.status_code)
+        self.assertEqual(response.data["detail"].code, "not_authenticated")
+
+    def test_request_by_user_that_is_not_creator(self):
+        data = {"participants": [str(self.participant2.id)]}
+        request = request_factory.patch("/", data=data, content_type="application/json")
+        force_authenticate(request, user=self.user)
+        response = self.view.as_view()(request, pk=self.budget.pk)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_remove_participant(self):
         data = {"participants": [str(self.participant2.id)]}
         request = request_factory.patch("/", data=data, content_type="application/json")
         force_authenticate(request, user=self.creator)
-        response = BudgetRemoveParticipants.as_view()(request, pk=self.budget.pk)
+        response = self.view.as_view()(request, pk=self.budget.pk)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 

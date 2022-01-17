@@ -161,10 +161,34 @@ class BudgetDetail(RetrieveAPIView):
 
 
 class BudgetRemoveParticipants(UpdateAPIView):
+    """
+    Returns details of given budget id.
+
+    ### Query params:
+
+       * &budget=x - specify budget id.
+
+    ### Fields descriptions:
+
+       * participants - list of users ids to be removed from participants
+
+
+    ### Response status codes:
+
+       * 200 OK
+       * 401 UNAUTHORIZED. Only logged used can update budget.
+       * 403 FORBIDDEN. Only creator or participant can upadte
+
+    ### Avalible methods:
+
+       * PATCH
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = BudgetRemoveParticipantsSerializer
     queryset = Budget.objects.all()
     model = Budget
+    http_method_names = ["patch"]
 
 
 class ExpenseCreate(CreateAPIView):
