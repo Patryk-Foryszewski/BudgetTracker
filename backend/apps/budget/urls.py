@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     BudgetCreate,
+    BudgetDelete,
     BudgetDetail,
     BudgetList,
     BudgetRemoveParticipants,
@@ -15,6 +16,7 @@ urlpatterns = [
     path("update/", BudgetUpdate.as_view(), name="update"),
     path("list/", BudgetList.as_view(), name="list"),
     path("detail/", BudgetDetail.as_view(), name="detail"),
+    path("delete/", BudgetDelete.as_view(), name="delete"),
     path(
         "remove_participants/",
         BudgetRemoveParticipants.as_view(),

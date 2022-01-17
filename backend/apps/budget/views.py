@@ -256,6 +256,25 @@ class ExpenseUpdate(UpdateAPIView):
 
 
 class BudgetDelete(DestroyAPIView):
+    """
+    Endpoint for deleting budget.
+
+    ### Query params:
+
+       * &pk=x - specify budget id
+
+
+    ### Response status codes:
+
+       * 204 OK DELETED
+       * 401 UNAUTHORIZED. Only logged user can try to delete budget.
+       * 403 FORBIDDEN. Only creator can delete budget.
+
+    ### Avalible methods:
+
+       * DELETE
+    """
+
     model = Budget
     queryset = Budget.objects.all()
     permission_classes = [IsAuthenticated]
