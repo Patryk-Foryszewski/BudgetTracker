@@ -16,9 +16,11 @@ class BudgetCreateSerializerTest(TestCase):
     def setUpTestData(cls) -> None:
         fake = Faker(["pl_PL", "la"])
         cls.creator = UserFactory()
+        cls.participant = UserFactory()
         cls.budget_attributes = {
             "name": fake.sentence(nb_words=1),
             "content": fake.sentence(nb_words=30, variable_nb_words=False),
+            "participants": [cls.participant],
         }
         request = request_factory.post("/")
         request.user = cls.creator
@@ -32,7 +34,7 @@ class BudgetCreateSerializerTest(TestCase):
         self.serializer.is_valid()
         data = self.serializer.data
 
-        self.assertEqual(list(data.keys()), ["name", "content"])
+        self.assertEqual(list(data.keys()), ["name", "content", "participants"])
 
 
 class BudgetListSerializerTester(TestCase):
