@@ -163,6 +163,9 @@ class RemoveBudgetParticipant(TestCase):
         force_authenticate(request, user=self.creator)
         response = self.view.as_view()(request, pk=self.budget.pk)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            2, Budget.objects.get(pk=self.budget.pk).participants.all().count()
+        )
 
 
 class BudgetListView(TestCase):

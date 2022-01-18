@@ -55,15 +55,20 @@ class BudgetUpdateSerializer(AddCreatorMixin, serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
-class BudgetRemoveParticipantsSerializer(
-    InstanceOrBudgetCreatorMixin, serializers.ModelSerializer
-):
+class BudgetRemoveParticipantsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Budget
         fields = ["participants"]
 
+    def has_access(self, instance):
+        user = self.context["request"].user
+        if instance.creator != user:
+            raise PermissionDenied(
+                "Only Creator of Budget is allowed to remove participant"
+            )
+
     def update(self, instance, validated_data):
-        self.has_access(instance, validated_data)
+        self.has_access(instance)
         for participant in validated_data["participants"]:
             instance.participants.remove(participant)
         instance.save()

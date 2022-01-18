@@ -17,25 +17,25 @@ from .views import (
 
 urlpatterns = [
     path("create/", BudgetCreate.as_view(), name="create"),
-    path("update/<int:pk>/", BudgetUpdate.as_view(), name="update"),
+    path("<int:pk>/update/", BudgetUpdate.as_view(), name="update"),
     path("list/", BudgetList.as_view(), name="list"),
-    path("detail/<int:pk>/", BudgetDetail.as_view(), name="detail"),
-    path("delete/<int:pk>/", BudgetDelete.as_view(), name="delete"),
+    path("<int:pk>/detail/", BudgetDetail.as_view(), name="detail"),
+    path("<int:pk>/delete/", BudgetDelete.as_view(), name="delete"),
     path(
-        "remove_participants/<int:pk>/",
+        "<int:pk>/remove_participants/",
         BudgetRemoveParticipants.as_view(),
         name="remove_participants",
     ),
     path(
-        "create_expense/<int:budget>/", ExpenseCreate.as_view(), name="create_expense"
+        "<int:budget>/create_expense/", ExpenseCreate.as_view(), name="create_expense"
     ),
     path("update_expense/<int:pk>/", ExpenseUpdate.as_view(), name="update_expense"),
     path(
-        "create_category/<int:budget>/",
+        "<int:budget>/create_category/",
         CategoryCreate.as_view(),
         name="create_category",
     ),
-    path("list_category/<int:budget>/", CategoryList.as_view(), name="list_category"),
+    path("<int:budget>/list_category/", CategoryList.as_view(), name="list_category"),
     path("edit_category/<int:pk>/", CategoryEdit.as_view(), name="edit_category"),
     path("delete_category/<int:pk>/", CategoryDelete.as_view(), name="delete_category"),
 ]
