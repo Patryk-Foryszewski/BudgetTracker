@@ -8,6 +8,7 @@ from .views import (
     BudgetRemoveParticipants,
     BudgetUpdate,
     CategoryCreate,
+    CategoryDelete,
     CategoryEdit,
     CategoryList,
     ExpenseCreate,
@@ -36,4 +37,5 @@ urlpatterns = [
     ),
     path("list_category/<int:budget>/", CategoryList.as_view(), name="list_category"),
     path("edit_category/<int:pk>/", CategoryEdit.as_view(), name="edit_category"),
+    path("delete_category/<int:pk>/", CategoryDelete.as_view(), name="delete_category"),
 ]

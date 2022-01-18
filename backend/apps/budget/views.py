@@ -385,6 +385,25 @@ class CategoryEdit(UpdateAPIView):
 
 
 class CategoryDelete(DestroyAPIView):
+    """
+    Endpoint for editing category.
+
+    ### Query params:
+
+       * &pk=x - specify category id
+
+
+    ### Response status codes:
+
+       * 204 OK DELETED
+       * 401 UNAUTHORIZED. Only logged user can try to perform action.
+       * 403 FORBIDDEN. Only creator of budget can delete category.
+
+    ### Avalible methods:
+
+       * DELETE
+    """
+
     model = Category
     queryset = Category.objects.all()
     permission_classes = [IsAuthenticated]
