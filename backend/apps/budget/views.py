@@ -99,7 +99,7 @@ class BudgetUpdate(UpdateAPIView):
     """
     Endpoint for updating budget.
 
-    ### Query params:
+    ### url example:
 
        * &pk=x - specify budget id.
 

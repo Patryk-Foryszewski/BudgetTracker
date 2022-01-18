@@ -450,7 +450,6 @@ class ListCategory(TestCase):
         self.assertEqual(response.data["detail"].code, "not_authenticated")
 
     def test_list_categories_for_given_budget(self):
-
         request = request_factory.get("/", content_type="application/json")
         force_authenticate(request, user=self.creator)
         response = self.view.as_view()(request, budget=self.budget.id)
