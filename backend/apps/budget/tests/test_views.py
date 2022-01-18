@@ -454,6 +454,13 @@ class ListCategory(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(3, response.data["count"])
 
+    def test_list_categories_without_budget_pk(self):
+
+        request = request_factory.get("/", content_type="application/json")
+        force_authenticate(request, user=self.creator)
+        response = self.view.as_view()(request)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_list_categories_by_user_that_is_not_budget_creator_or_participant(self):
         request = request_factory.get("/", content_type="application/json")
         force_authenticate(request, user=self.user_2)

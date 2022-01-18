@@ -354,10 +354,34 @@ class CategoryList(BudgetCreatorOrParticipantMixin, ListAPIView):
 
 
 class CategoryEdit(UpdateAPIView):
+    """
+    Endpoint for editing category.
+
+    ### Query params:
+
+       * &pk=x - specify category id
+
+    ### Fields descriptions:
+
+       * name - name of category
+
+    ### Response status codes:
+
+       * 200 OK
+       * 401 UNAUTHORIZED. Only logged user can try to perform action.
+       * 403 FORBIDDEN. Only creator or participant of budget can
+         edit category.
+
+    ### Avalible methods:
+
+       * PATCH
+    """
+
     model = Category
     queryset = Category.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = CategoryEditSerializer
+    http_method_names = ["patch"]
 
 
 class CategoryDelete(DestroyAPIView):
