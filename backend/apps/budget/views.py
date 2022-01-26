@@ -119,7 +119,7 @@ class CategoryCreate(CreateAPIView):
 
 
 class CategoryList(BudgetCreatorOrParticipantMixin, ListAPIView):
-    queryset = Category.objects.all()
+    queryset = Category.objects.all().order_by("name")
     permission_classes = [IsAuthenticated]
     serializer_class = CategorySerializer
 

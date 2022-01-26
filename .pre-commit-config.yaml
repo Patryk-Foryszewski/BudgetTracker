@@ -1,4 +1,6 @@
 exclude: frontend/
+         .mypy_cache
+         ^migrations
 repos:
   - repo: https://github.com/ambv/black
     rev: 21.9b0
@@ -15,9 +17,7 @@ repos:
         exclude: ^templates/templated_email/compiled/
         exclude_types: [svg]
       - id: end-of-file-fixer
-        exclude:
-                .mypy_cache
-                frontend
+        exclude: .mypy_cache
         exclude_types: [svg]
 
   - repo: https://gitlab.com/pycqa/flake8
