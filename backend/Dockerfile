@@ -9,8 +9,8 @@ ENV PYTHONFAULTHANDLER=1 \
     PIP_DEFAULT_TIMEOUT=100
 
 # python dependencies
-COPY ./requirements.txt /
-RUN pip install -r ./requirements.txt
+COPY ./requirements_dev.txt /
+RUN pip install -r ./requirements_dev.txt
 
 # upload scripts
 COPY ./scripts/entrypoint.sh ./scripts/start.sh ./scripts/gunicorn.sh /

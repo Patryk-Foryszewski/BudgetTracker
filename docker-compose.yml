@@ -15,6 +15,8 @@ services:
     entrypoint: /entrypoint.sh
     restart: on-failure
     env_file: .env
+    ports:
+      - "8000:8000"
 
   frontend:
     image: node:10-alpine
@@ -43,7 +45,7 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "8000:80"
+      - "8001:80"
     depends_on:
       - backend
     volumes:
