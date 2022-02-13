@@ -49,6 +49,7 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.admin",
     "drf_yasg",
+    "storages",
 ]
 
 THIRD_PARTY_APPS = [
@@ -282,3 +283,9 @@ REST_USE_JWT = True
 PAGINATE_BY = 20
 
 # MESSAGE_STORAGE = "drf_messages.storage.DBStorage"
+AWS_ACCESS_KEY_ID = env.str("AWS_ACCESS_KEY_ID")
+AWS_STORAGE_BUCKET_NAME = env.str("AWS_STORAGE_BUCKET_NAME")
+
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+DEFAULT_FILE_STORAGE = "storage.backend.s3boto3.S3Boto3Storage"
